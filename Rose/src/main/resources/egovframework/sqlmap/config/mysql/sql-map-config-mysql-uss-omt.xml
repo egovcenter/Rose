@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd" >
+<sqlMapConfig>
+	<sqlMap resource="egovframework/sqlmap/com/uss/omt/EgovAbsence_SQL_Mysql.xml" />
+	<sqlMap resource="egovframework/sqlmap/com/uss/omt/EgovAuthentication_SQL_Mysql.xml" />
+	<sqlMap resource="egovframework/sqlmap/com/uss/omt/EgovDept_SQL_Mysql.xml" />
+	<sqlMap resource="egovframework/sqlmap/com/uss/omt/EgovDuty_SQL_Mysql.xml" />
+	<sqlMap resource="egovframework/sqlmap/com/uss/omt/EgovPosition_SQL_Mysql.xml" />
+</sqlMapConfig>

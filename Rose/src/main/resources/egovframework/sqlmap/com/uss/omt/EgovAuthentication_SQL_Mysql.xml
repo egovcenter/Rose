@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Authentication">
+
+	<typeAlias  alias="AuthenticationVO" type="egovframework.com.uss.omt.service.AuthenticationVO"/>
+	
+	<update id="AuthenticationDAO.updateAuthenticationInf" parameterClass="AuthenticationVO" >
+		<![CDATA[
+			UPDATE LOGIN_INFO 
+			SET
+				DEPT_ID = #deptId#,
+				LOGIN_DT = #loginDt#,
+			WHERE USER_ID = #userId#
+		]]>
+	</update>
+	
+	<insert id="AuthenticationDAO.insertAuthenticationInf" parameterClass="AuthenticationVO">
+		<![CDATA[
+			INSERT INTO LOGIN_INFO 
+				(USER_ID, DEPT_ID, LOGIN_DT)
+			VALUES
+				(#userId#, #deptId#, #loginDt#)
+		]]>
+	</insert>
+	
+	<delete id="AuthenticationDAO.deleteAuthenticationInfByUserId" parameterClass="AuthenticationVO">
+			<![CDATA[
+			DELETE FROM LOGIN_INFO WHERE USER_ID = #userId#
+			]]>
+	</delete>
+	
+	<select id="AuthenticationDAO.selectAuthenticationInfByUserId" parameterClass="AuthenticationVO" resultClass="AuthenticationVO">
+		<![CDATA[
+			SELECT li.USER_ID, li.DEPT_ID, li.LOGIN_DT 
+			FROM LOGIN_INFO li 
+			WHERE li.user_id = #userId#
+		]]>
+	</select>
+
+</sqlMap>

@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ApprovalDoc">
+
+	<typeAlias 	alias="Doc" type="egovframework.com.uss.ion.apv.DocImpl"/>
+	<typeAlias  alias="SignerVO" type="egovframework.com.uss.ion.apv.service.SignerVO"/>
+	<typeAlias  alias="RecipientVO" type="egovframework.com.uss.ion.apv.service.RecipientVO"/>
+	<typeAlias  alias="DeptVO" type="egovframework.com.uss.omt.service.DeptVO"/>
+	<typeAlias  alias="LabelDocVO" type="egovframework.com.uss.ion.apv.service.LabelDocVO"/>
+	<typeAlias  alias="PassboxDocVO" type="egovframework.com.uss.ion.apv.service.PassboxDocVO"/>
+	<typeAlias  alias="SearchVO" type="egovframework.com.uss.ion.apv.SearchCriteria"/>
+	
+	<resultMap id="DocVO" class="egovframework.com.uss.ion.apv.DocImpl">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="lbelId" 			column="LBEL_ID" 		columnIndex="2" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="3" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="4" />
+		<result property="docSyear" 		column="DOC_SYEAR" 		columnIndex="5" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="6" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="7" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="8" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="9" />
+		<result property="docOpnF" 			column="DOC_OPN_F" 		columnIndex="10" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="11" />
+		<result property="docFState" 		column="DOC_F_STATE" 	columnIndex="12" />
+		<result property="formId" 			column="FORM_ID" 		columnIndex="13" />
+		<result property="docOrgId" 		column="DOC_ORG_ID" 	columnIndex="14" />
+		<result property="docType" 			column="DOC_TYPE" 		columnIndex="15" />
+	</resultMap>
+	
+	<resultMap id="OngoingDoc" class="egovframework.com.uss.ion.apv.service.OngoingDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 			column="DOC_TYPE" 		columnIndex="9" />
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="10" />
+		<result property="approvedDateTime" column="APPROVED_DT" 	columnIndex="11" />
+		<result property="draftDeptId" 		column="DRAFT_DEPT_ID" 	columnIndex="12" />
+		<result property="draftDeptName" 	column="DRAFT_DEPT_NM" 	columnIndex="13" />
+		<result property="drafterId" 		column="DRAFTER_ID" 	columnIndex="14" />
+		<result property="drafterName" 		column="DRAFTER_NM" 	columnIndex="15" />
+	</resultMap>
+	
+	<resultMap id="WaitingDoc" class="egovframework.com.uss.ion.apv.service.WaitingDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 			column="DOC_TYPE" 		columnIndex="9" />
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="10" />
+		<result property="draftDeptName"	column="DRAFT_DEPT_NM" 	columnIndex="11" />
+		<result property="drafterID" 		column="DRAFTER_ID" 	columnIndex="12" />
+		<result property="drafterName" 		column="DRAFTER_NM" 	columnIndex="13" />		
+	</resultMap>
+
+	<resultMap id="OutgoingDoc" class="egovframework.com.uss.ion.apv.service.OutgoingDocVO">
+		<result property="docID" 			 column="DOC_ID" 		 columnIndex="1" />
+		<result property="docTitle" 		 column="DOC_TITLE" 	 columnIndex="2" />
+		<result property="docCd" 			 column="DOC_CD" 		 columnIndex="3" />
+		<result property="docSlvl" 			 column="DOC_SLVL" 		 columnIndex="4" />
+		<result property="docEmF" 			 column="DOC_EM_F" 		 columnIndex="5" />
+		<result property="docPpF" 			 column="DOC_PP_F" 		 columnIndex="6" />
+		<result property="docAttaF" 		 column="DOC_ATTA_F" 	 columnIndex="7" />
+		<result property="docOpnF" 		 	 column="DOC_OPN_F" 	 columnIndex="8" />
+		<result property="docPState" 		 column="DOC_P_STATE" 	 columnIndex="9" />
+		<result property="docType" 		 	 column="DOC_TYPE" 	 	 columnIndex="10" />
+		<result property="draftDateTime" 	 column="DRAFT_DT" 		 columnIndex="11" />
+		<result property="approvedDateTime"  column="APPROVED_DT" 	 columnIndex="12" />
+		<result property="draftDeptId" 		 column="DRAFT_DEPT_ID"  columnIndex="13" />
+		<result property="draftDeptName" 	 column="DRAFT_DEPT_NM"  columnIndex="14" />
+		<result property="drafterId" 		 column="DRAFTER_ID" 	 columnIndex="15" />
+		<result property="drafterName" 		 column="DRAFTER_NM" 	 columnIndex="16" />
+		<result property="recipientDeptNames" column="RECP_DEPT_NAMES" columnIndex="17" />
+	</resultMap>
+
+	<resultMap id="IncomingDoc" class="egovframework.com.uss.ion.apv.service.IncomingDocVO">
+		<result property="docID" 			 column="DOC_ID" 		 columnIndex="1" />
+		<result property="docTitle" 		 column="DOC_TITLE" 	 columnIndex="2" />
+		<result property="docCd" 			 column="DOC_CD" 		 columnIndex="3" />
+		<result property="docSlvl" 			 column="DOC_SLVL" 		 columnIndex="4" />
+		<result property="docEmF" 			 column="DOC_EM_F" 		 columnIndex="5" />
+		<result property="docPpF" 			 column="DOC_PP_F" 		 columnIndex="6" />
+		<result property="docAttaF" 		 column="DOC_ATTA_F" 	 columnIndex="7" />
+		<result property="docPState" 		 column="DOC_P_STATE" 	 columnIndex="8" />
+		<result property="docType" 		 	 column="DOC_TYPE" 	 	 columnIndex="9" />
+		<result property="arrivalDateTime"	 column="RECP_ARRV_DT" 	 columnIndex="10" />
+		<result property="senderUserName" 	 column="RECP_S_USER_NM" columnIndex="11" />
+		<result property="senderUserId" 	 column="RECP_S_USER_ID" columnIndex="12" />
+		<result property="recpRecpDt" 		 column="RECP_RECP_DT" 	 columnIndex="13" />
+		<result property="recpRecpUserNm" 	 column="RECP_R_USER_NM" columnIndex="14" />
+		<result property="recpRecpUserId" 	 column="RECP_R_USER_ID" columnIndex="15" />
+		<result property="recpRecpDocId" 	 column="RECP_R_DOC_ID"  columnIndex="16" />
+	</resultMap>
+	
+	<resultMap id="DraftDoc" class="egovframework.com.uss.ion.apv.service.DraftDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docOpnF" 			column="DOC_OPN_F" 		columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 			column="DOC_TYPE" 		columnIndex="9" />
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="10" />
+		<result property="approvedDateTime"	column="APPROVED_DT" 	columnIndex="11" />
+		<result property="draftDeptId" 		column="DRAFT_DEPT_ID" 	columnIndex="12" />
+		<result property="draftDeptName" 	column="DRAFT_DEPT_NM" 	columnIndex="13" />
+		<result property="drafterId" 		column="DRAFTER_ID" 	columnIndex="14" />
+		<result property="drafterName" 		column="DRAFTER_NM" 	columnIndex="15" />		
+	</resultMap>
+				
+	<resultMap id="ApprovedDoc" class="egovframework.com.uss.ion.apv.service.ApprovedDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 			column="DOC_TYPE" 		columnIndex="9" />
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="10" />
+		<result property="approvedDateTime"	column="APPROVED_DT" 	columnIndex="11" />
+		<result property="draftDeptID" 		column="DRAFT_DEPT_ID" 	columnIndex="12" />
+		<result property="draftDeptName" 	column="DRAFT_DEPT_NM" 	columnIndex="13" />
+		<result property="drafterID" 		column="DRAFTER_ID" 	columnIndex="14" />
+		<result property="drafterName" 		column="DRAFTER_NM" 	columnIndex="15" />		
+	</resultMap>
+	
+	<resultMap id="InboxDoc" class="egovframework.com.uss.ion.apv.service.InboxDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 		 	column="DOC_TYPE" 	 	columnIndex="9" />
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="9" />
+		<result property="approvedDateTime" column="APPROVED_DT" 	columnIndex="10" />
+		<result property="draftDeptId" 		column="DRAFT_DEPT_ID" 	columnIndex="11" />
+		<result property="draftDeptName" 	column="DRAFT_DEPT_NM" 	columnIndex="12" />
+		<result property="drafterId" 		column="DRAFTER_ID" 	columnIndex="13" />
+		<result property="drafterName"		column="DRAFTER_NM" 	columnIndex="14" />
+		<result property="senderName" 		column="RECP_S_USER_NM"	columnIndex="15" />
+	</resultMap>
+	
+	<resultMap id="OutboxDoc" class="egovframework.com.uss.ion.apv.service.OutboxDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 		 	column="DOC_TYPE" 	 	columnIndex="9" />		
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="10" />
+		<result property="approvedDateTime" column="APPROVED_DT" 	columnIndex="11" />
+		<result property="draftDeptId" 		column="DRAFT_DEPT_ID" 	columnIndex="12" />
+		<result property="draftDeptName" 	column="DRAFT_DEPT_NM" 	columnIndex="13" />
+		<result property="drafterId" 		column="DRAFTER_ID" 	columnIndex="14" />
+		<result property="drafterName"		column="DRAFTER_NM" 	columnIndex="15" />
+	</resultMap>
+	
+	<resultMap id="LabelDoc" class="egovframework.com.uss.ion.apv.service.LabelDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 			column="DOC_TYPE" 		columnIndex="9" />
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="10" />
+		<result property="approvedDateTime" column="APPROVED_DT" 	columnIndex="11" />
+		<result property="draftDeptId" 		column="DRAFT_DEPT_ID" 	columnIndex="12" />
+		<result property="draftDeptName" 	column="DRAFT_DEPT_NM" 	columnIndex="13" />
+		<result property="drafterId" 		column="DRAFTER_ID" 	columnIndex="14" />
+		<result property="drafterName"		column="DRAFTER_NM" 	columnIndex="15" />
+	</resultMap>
+	
+	<resultMap id="PassboxDoc" class="egovframework.com.uss.ion.apv.service.PassboxDocVO">
+		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
+		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="2" />
+		<result property="docCd" 			column="DOC_CD" 		columnIndex="3" />
+		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="4" />
+		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="5" />
+		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="6" />
+		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="7" />
+		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="8" />
+		<result property="docType" 			column="DOC_TYPE" 		columnIndex="9" />
+		<result property="draftDateTime" 	column="DRAFT_DT" 		columnIndex="10" />
+		<result property="approvedDateTime" column="APPROVED_DT" 	columnIndex="11" />
+		<result property="draftDeptId" 		column="DRAFT_DEPT_ID" 	columnIndex="12" />
+		<result property="draftDeptName" 	column="DRAFT_DEPT_NM" 	columnIndex="13" />
+		<result property="drafterId" 		column="DRAFTER_ID" 	columnIndex="14" />
+		<result property="drafterName"		column="DRAFTER_NM" 	columnIndex="15" />
+		<result property="recpDeptNames"	column="RECP_DEPT_NAMES" columnIndex="16" />
+	</resultMap>
+	
+	<select id="DocDAO.selectWaitingDocCnt" parameterClass="SignerVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*)
+			FROM 
+				SIGNER_INFO si, DOC_INFO di 
+			WHERE 
+				si.DOC_ID = di.DOC_ID 
+				AND si.SNGR_USER_ID = #uniqID# 
+				AND (si.SNGR_STATE IN ('SS00', 'SS01'))
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectOngoingDocCnt" parameterClass="SignerVO" resultClass="java.lang.Integer">
+		<![CDATA[
+		SELECT 
+			COUNT(*) 
+		FROM 
+			SIGNER_INFO si, DOC_INFO di 
+		WHERE 
+			si.DOC_ID = di.DOC_ID 
+		    AND si.SNGR_USER_ID = #uniqID# 
+		    AND di.DOC_P_STATE <> 'DP09' 
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectIncomingDocCnt" parameterClass="RecipientVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*) 
+			FROM 
+				DOC_INFO di, RECIPIENT_INFO ri 
+			WHERE 
+				di.DOC_ID = ri.DOC_ID 
+				AND ri.RECP_FINI_DT IS NULL	
+				AND ri.RECP_SEND_DT IS NOT NULL
+			    AND ri.RECP_DEPT_ID = #recpId# 
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectOutgoingDocCnt" parameterClass="RecipientVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*) 
+			FROM 
+				DOC_INFO di 
+			WHERE 
+				1 = 1 
+				AND di.LBEL_ID in (SELECT LBEL_ID FROM LABEL_MST WHERE ORGNZT_ID = #deptId#)
+				AND di.DOC_TYPE = 'DT02'
+				AND di.DOC_P_STATE = 'DP09'
+				AND EXISTS (SELECT 1 FROM RECIPIENT_INFO ri WHERE di.DOC_ID = ri.DOC_ID AND ri.RECP_SEND_TYPE <> 'ST01' AND ri.RECP_SEND_DT IS NULL) 
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectOngoingDocs" parameterClass="SearchVO" resultMap="OngoingDoc">
+		<![CDATA[
+			SELECT DISTINCT
+				di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+				di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_P_STATE, 	di.DOC_TYPE
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+			FROM 
+				SIGNER_INFO si, DOC_INFO di
+			WHERE
+				si.DOC_ID = di.DOC_ID
+				AND si.SNGR_USER_ID = #userId#
+				AND di.DOC_P_STATE <> 'DP09'
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DOC_TYPE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY DRAFTER_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY DOC_P_STATE
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>
+	</select>
+	
+	<select id="DocDAO.selectWaitingDocs" parameterClass="SearchVO" resultMap="WaitingDoc">
+		<![CDATA[
+			SELECT DISTINCT
+				di.DOC_ID,		di.DOC_TITLE,		di.DOC_CD,		di.DOC_SLVL,		di.DOC_EM_F,
+				di.DOC_PP_F,	di.DOC_ATTA_F,		di.DOC_OPN_F,	di.DOC_P_STATE, 	di.DOC_TYPE, 
+			 	(SELECT SNGR_DT 	 FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND IN ('SK00', 'SK03', 'SK04'))) DRAFT_DT,			 		 
+				(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND IN ('SK00', 'SK03', 'SK04'))) DRAFT_DEPT_NM,												   
+				(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND IN ('SK00', 'SK03', 'SK04'))) DRAFTER_ID,
+				(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND IN ('SK00', 'SK03', 'SK04'))) DRAFTER_NM
+			FROM 
+				SIGNER_INFO si, DOC_INFO di 
+			WHERE 
+				si.DOC_ID = di.DOC_ID 
+				AND si.SNGR_USER_ID = #userId#
+				AND (si.SNGR_STATE IN ('SS00', 'SS01'))  
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DOC_TYPE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY DRAFTER_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY DOC_P_STATE
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>
+	</select>
+	
+	<select id="DocDAO.selectOutgoingDocs" parameterClass="SearchVO" resultMap="OutgoingDoc">
+		<![CDATA[
+			SELECT DISTINCT
+				di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+				di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_OPN_F,	di.DOC_P_STATE, 	di.DOC_TYPE
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+				,(SELECT GROUP_CONCAT(RECP_DEPT_NM SEPARATOR ', ') FROM RECIPIENT_INFO ri WHERE di.DOC_ID = ri.DOC_ID AND ri.RECP_SEND_TYPE <> 'ST01' AND ri.RECP_SEND_DT IS NULL GROUP BY ri.DOC_ID) AS RECP_DEPT_NAMES
+			FROM DOC_INFO di 
+			WHERE	1 = 1 
+				AND di.LBEL_ID IN (SELECT LBEL_ID FROM LABEL_MST WHERE ORGNZT_ID = #orgnztId#) 
+				AND di.DOC_TYPE = 'DT02' AND di.DOC_P_STATE = 'DP09' 
+				AND EXISTS (SELECT 1 FROM RECIPIENT_INFO ri WHERE di.DOC_ID = ri.DOC_ID AND ri.RECP_SEND_TYPE <> 'ST01' AND ri.RECP_SEND_DT IS NULL)
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY DOC_CD 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>		
+	</select>
+	
+	<select id="DocDAO.selectIncomingDocs" parameterClass="SearchVO" resultMap="IncomingDoc">
+		<![CDATA[
+		SELECT DISTINCT 				
+			di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+			di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_P_STATE, 	di.DOC_TYPE
+			,(SELECT RECP_ARRV_DT FROM RECIPIENT_INFO WHERE DOC_ID=di.DOC_ID AND RECP_DEPT_ID = ri.RECP_DEPT_ID LIMIT 1) RECP_ARRV_DT
+			,(SELECT RECP_S_USER_NM FROM RECIPIENT_INFO WHERE DOC_ID=di.DOC_ID AND RECP_DEPT_ID = ri.RECP_DEPT_ID LIMIT 1) RECP_S_USER_NM
+			,(SELECT RECP_S_USER_ID FROM RECIPIENT_INFO WHERE DOC_ID=di.DOC_ID AND RECP_DEPT_ID = ri.RECP_DEPT_ID LIMIT 1) RECP_S_USER_ID
+			,(SELECT RECP_RECP_DT FROM RECIPIENT_INFO WHERE DOC_ID=di.DOC_ID AND RECP_DEPT_ID = ri.RECP_DEPT_ID LIMIT 1) RECP_RECP_DT 
+			,(SELECT RECP_R_USER_NM FROM RECIPIENT_INFO WHERE DOC_ID=di.DOC_ID AND RECP_DEPT_ID = ri.RECP_DEPT_ID LIMIT 1) RECP_R_USER_NM
+			,(SELECT RECP_R_USER_ID FROM RECIPIENT_INFO WHERE DOC_ID=di.DOC_ID AND RECP_DEPT_ID = ri.RECP_DEPT_ID LIMIT 1) RECP_R_USER_ID
+			,(SELECT r_di.DOC_ID FROM DOC_INFO r_di, SIGNER_INFO r_si WHERE r_di.DOC_ID = r_si.DOC_ID 
+				AND r_si.SNGR_DEPT_ID = ri.RECP_DEPT_ID AND r_di.DOC_ORG_ID = ri.DOC_ID AND r_si.SNGR_KIND = 'SK03' AND r_si.SNGR_DT = ri.RECP_RECP_DT LIMIT 1) RECP_R_DOC_ID 
+		FROM DOC_INFO di, RECIPIENT_INFO ri 
+		WHERE di.DOC_ID = ri.DOC_ID 
+			AND  ri.RECP_FINI_DT IS NULL	
+		    AND ri.RECP_SEND_DT IS NOT NULL AND ri.RECP_DEPT_ID = #orgnztId#				
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY RECP_ARRV_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY DOC_CD 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY RECP_S_USER_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY RECP_R_USER_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY RECP_RECP_DT
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>		
+	</select>
+	
+	<select id="DocDAO.selectDraftDocCnt" parameterClass="SignerVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*) 
+			FROM 
+				SIGNER_INFO si, DOC_INFO di 
+			WHERE 
+				si.DOC_ID = di.DOC_ID 
+				AND si.SNGR_USER_ID = #uniqID# 
+				AND di.DOC_P_STATE = 'DP09' 
+				AND si.SNGR_KIND in ('SK00', 'SK04') 
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectDraftDocs" parameterClass="SearchVO" resultMap="DraftDoc">
+		<![CDATA[
+			SELECT  DISTINCT
+				di.DOC_ID,		di.DOC_TITLE,		di.DOC_CD,		di.DOC_SLVL,		di.DOC_EM_F,
+				di.DOC_PP_F,	di.DOC_ATTA_F,		di.DOC_OPN_F,	di.DOC_P_STATE, 	di.DOC_TYPE
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+			FROM 
+				SIGNER_INFO si, DOC_INFO di
+			WHERE 
+				si.DOC_ID=di.DOC_ID 
+				AND si.SNGR_USER_ID=#userId# 
+				AND di.DOC_P_STATE='DP09' 
+				AND si.SNGR_KIND IN ('SK00', 'SK04') 
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DOC_TYPE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY APPROVED_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY DRAFTER_NM
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>		
+	</select>
+	
+	<select id="DocDAO.selectApprovedDocCnt" parameterClass="SignerVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*)
+			FROM 
+				SIGNER_INFO si, DOC_INFO di
+			WHERE
+				si.DOC_ID = di.DOC_ID 
+				AND si.SNGR_USER_ID = #uniqID#	
+				AND di.DOC_P_STATE = 'DP09' 
+				AND (si.SNGR_KIND = 'SK01' OR si.SNGR_KIND = 'SK02')
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectApprovedDocs" parameterClass="SearchVO" resultMap="ApprovedDoc">
+		<![CDATA[
+			SELECT DISTINCT 				
+				di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+				di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_P_STATE, 	di.DOC_TYPE    
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+			FROM SIGNER_INFO si, DOC_INFO di 
+			WHERE si.DOC_ID = di.DOC_ID 
+				AND si.SNGR_USER_ID = #userId#  
+			    AND di.DOC_P_STATE = 'DP09' 
+			    AND (si.SNGR_KIND = 'SK01' OR si.SNGR_KIND = 'SK02')
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DOC_TYPE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY APPROVED_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY DRAFTER_NM
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>
+	</select>
+	
+	<select id="DocDAO.selectInboxDocCnt" parameterClass="DeptVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*) 
+			FROM 
+				DOC_INFO di 
+			WHERE 
+				1 = 1 
+				AND di.LBEL_ID in (SELECT LBEL_ID FROM LABEL_MST WHERE ORGNZT_ID = #deptId#)
+				AND di.DOC_TYPE = 'DT03'
+				AND di.DOC_P_STATE = 'DP09'
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectInboxDocs" parameterClass="SearchVO" resultMap="InboxDoc">
+		<![CDATA[
+			SELECT DISTINCT 				
+				di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+				di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_P_STATE, 	di.DOC_TYPE    
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+			    ,(SELECT DISTINCT ri.RECP_S_USER_NM FROM RECIPIENT_INFO ri WHERE ri.DOC_ID = di.DOC_ORG_ID and ri.RECP_DEPT_ID = #orgnztId#) AS RECP_S_USER_NM
+			FROM DOC_INFO di 
+			WHERE 1 = 1 
+				AND di.LBEL_ID IN (SELECT LBEL_ID FROM LABEL_MST WHERE ORGNZT_ID = #orgnztId#)	
+			    AND di.DOC_TYPE = 'DT03' 
+			    AND di.DOC_P_STATE = 'DP09'
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DOC_TYPE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY APPROVED_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY RECP_S_USER_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="7">
+			ORDER BY DRAFTER_NM
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>		
+		
+	</select>
+	
+	<select id="DocDAO.selectOutboxDocCnt" parameterClass="DeptVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*) 
+			FROM 
+				DOC_INFO di 
+			WHERE 
+				1 = 1 
+				AND di.LBEL_ID in (SELECT LBEL_ID FROM LABEL_MST WHERE ORGNZT_ID = #deptId#)
+				AND di.DOC_TYPE = 'DT02'
+				AND di.DOC_P_STATE = 'DP09' 
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectOutboxDocs" parameterClass="SearchVO" resultMap="OutboxDoc">
+		<![CDATA[
+			SELECT DISTINCT 				
+				di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+				di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_P_STATE, 	di.DOC_TYPE    
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+			FROM DOC_INFO di 
+			WHERE 1 = 1 
+				AND di.LBEL_ID IN (SELECT LBEL_ID FROM LABEL_MST WHERE ORGNZT_ID = #orgnztId#) 
+			    AND di.DOC_TYPE = 'DT02' 
+			    AND di.DOC_P_STATE = 'DP09'
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY APPROVED_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY DRAFTER_NM 
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>		
+	</select>
+	
+	<select id="DocDAO.selectLabelDocCnt" parameterClass="LabelDocVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			 SELECT 
+			 	COUNT(*) 
+			 FROM 
+			 	COMTNORGNZTINFO dm, LABEL_MST lm, DOC_INFO di 
+			 WHERE 
+			 	dm.ORGNZT_ID = lm.ORGNZT_ID 
+			 	AND lm.LBEL_ID = di.LBEL_ID 
+			 	AND dm.ORGNZT_ID = #draftDeptId# 
+			 	AND lm.LBEL_ID = #lbelId# 
+			 	AND di.DOC_P_STATE = 'DP09'  
+		]]>
+	</select>
+
+	<select id="DocDAO.selectLabelDocs" parameterClass="LabelDocVO" resultMap="LabelDoc">
+		<![CDATA[
+			SELECT DISTINCT 				
+				di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+				di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_P_STATE, 	di.DOC_TYPE    
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+			FROM COMTNORGNZTINFO dm, LABEL_MST lm, DOC_INFO di 
+			WHERE dm.ORGNZT_ID = lm.ORGNZT_ID 
+				AND lm.LBEL_ID = di.LBEL_ID 
+			    AND dm.ORGNZT_ID = #draftDeptId# 
+			    AND lm.LBEL_ID = #lbelId# 
+			    AND di.DOC_P_STATE = 'DP09'
+		]]>
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DOC_TYPE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY APPROVED_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY DRAFTER_NM
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual>
+	</select>
+
+	<insert id="DocDAO.insertDoc" parameterClass="Doc">
+		<![CDATA[
+			INSERT INTO DOC_INFO 
+				(DOC_ID, 		LBEL_ID,			DOC_TITLE,			DOC_CD,			DOC_SYEAR,
+				 DOC_SLVL,		DOC_EM_F,			DOC_PP_F,			DOC_ATTA_F,		DOC_OPN_F,
+				 DOC_P_STATE,	DOC_F_STATE,		FORM_ID,			DOC_ORG_ID,		DOC_TYPE)
+			VALUES
+				(#docID#,		#lbelId#,			#docTitle#,			#docCd#,		#docSyear#,
+				 #docSlvl#,		#docEmF#,			#docPpF#,			#docAttaF#,		#docOpnF#,
+				 #docPState#,	#docFState#,		#formId#,			#docOrgId#,		#docType#)
+		]]>
+	</insert>
+	
+	<update id="DocDAO.updateDoc" parameterClass="Doc">
+		<![CDATA[
+			UPDATE 
+				DOC_INFO 
+			SET 
+				LBEL_ID = #lbelId#,
+				DOC_TITLE = #docTitle#,
+				DOC_CD = #docCd#,
+				DOC_SYEAR = #docSyear#,
+				DOC_SLVL = #docSlvl#,
+				DOC_EM_F = #docEmF#,
+				DOC_PP_F = #docPpF#,
+				DOC_ATTA_F = #docAttaF#,
+				DOC_OPN_F = #docOpnF#,
+				DOC_P_STATE = #docPState#,
+				DOC_F_STATE = #docFState#,
+				FORM_ID = #formId#,
+				DOC_ORG_ID = #docOrgId#,
+				DOC_TYPE = #docType#
+			WHERE 
+				DOC_ID = #docID#
+		]]>
+	</update>
+	
+	<select id="DocDAO.selectDoc" parameterClass="Doc" resultMap="DocVO">
+		<![CDATA[
+			SELECT
+				DOC_ID, 		LBEL_ID,			DOC_TITLE,			DOC_CD,			DOC_SYEAR,
+				DOC_SLVL,		DOC_EM_F,			DOC_PP_F,			DOC_ATTA_F,		DOC_OPN_F,
+				DOC_P_STATE,	DOC_F_STATE,		FORM_ID,			DOC_ORG_ID,		DOC_TYPE
+			FROM
+				DOC_INFO
+			WHERE 
+				DOC_ID = #docID#
+		]]>
+	</select>
+	
+		
+	<select id="DocDAO.selectPassboxDocCnt" parameterClass="PassboxDocVO" resultClass="java.lang.Integer">
+		<![CDATA[
+ 			SELECT
+ 				COUNT(*)
+ 			FROM
+ 				DOC_INFO di
+ 			WHERE
+ 				1=1
+ 				AND di.DOC_ID IN (SELECT 
+ 									rc2.DOC_ID 
+ 								  FROM 
+ 								  	RECIPIENT_INFO rc2 
+ 								  WHERE 
+ 								  	rc2.RECP_PASS_DEPT_ID = #draftDeptId#
+ 								  	AND rc2.RECP_METHOD = '2')
+ 				AND di.DOC_TYPE = 'DT02'
+ 				AND di.DOC_P_STATE = 'DP09' 
+ 		]]> 
+	</select>
+	
+	<select id="DocDAO.selectPassboxDocs" parameterClass="PassboxDocVO" resultMap="PassboxDoc">
+		<![CDATA[ 
+			SELECT DISTINCT 				
+				di.DOC_ID, 	 		di.DOC_TITLE, 			di.DOC_CD,			di.DOC_SLVL, 			
+				di.DOC_EM_F, 		di.DOC_PP_F, 			di.DOC_ATTA_F, 		di.DOC_P_STATE, 	di.DOC_TYPE    
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DT 
+				,(SELECT SNGR_DT FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK02' OR SNGR_KIND='SK05') AND SNGR_STATE='SS09') APPROVED_DT 
+				,(SELECT SNGR_DEPT_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_ID 
+				,(SELECT SNGR_DEPT_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFT_DEPT_NM
+				,(SELECT SNGR_USER_ID FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_ID 
+				,(SELECT SNGR_USER_NM FROM SIGNER_INFO WHERE DOC_ID=di.DOC_ID AND (SNGR_KIND='SK00' OR SNGR_KIND='SK03' OR SNGR_KIND='SK04' OR SNGR_KIND='SK05')) DRAFTER_NM
+			    ,(SELECT GROUP_CONCAT(RECP_DEPT_NM SEPARATOR ', ') FROM RECIPIENT_INFO ri WHERE di.DOC_ID = ri.DOC_ID 
+			    	AND ri.RECP_PASS_DEPT_ID = #draftDeptId# AND ri.RECP_METHOD = '2' GROUP BY ri.DOC_ID) AS RECP_DEPT_NAMES 
+			FROM DOC_INFO di 
+			WHERE 1 = 1  
+				AND di.DOC_ID IN (SELECT rc2.DOC_ID FROM RECIPIENT_INFO rc2 WHERE rc2.RECP_PASS_DEPT_ID = #draftDeptId# AND rc2.RECP_METHOD = '2') 
+			    AND di.DOC_TYPE = 'DT02' 
+			    AND di.DOC_P_STATE = 'DP09'
+ 		]]> 
+		<isEqual property="orderColumn" compareValue="1">
+			ORDER BY DRAFT_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="2">
+			ORDER BY APPROVED_DT 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="3">
+			ORDER BY DOC_TITLE 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="4">
+			ORDER BY DRAFT_DEPT_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="5">
+			ORDER BY DRAFTER_NM 
+		</isEqual>
+		<isEqual property="orderColumn" compareValue="6">
+			ORDER BY RECP_DEPT_NAMES
+		</isEqual>
+		<isEqual property="orderMethod" compareValue="desc">
+			DESC
+		</isEqual> 		
+	</select>
+	
+	<select id="DocDAO.selectDocCntByLabelId" parameterClass="Doc" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*)
+			FROM 
+				DOC_INFO
+			WHERE
+				LBEL_ID=#lbelId#
+		]]>
+	</select>
+	
+	<select id="DocDAO.selectDocCntByFormId" parameterClass="Doc" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*)
+			FROM 
+				DOC_INFO
+			WHERE
+				FORM_ID=#formId#
+		]]>
+	</select>
+</sqlMap>

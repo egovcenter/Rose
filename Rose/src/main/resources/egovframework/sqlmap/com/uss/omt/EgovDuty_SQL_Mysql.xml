@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Duty">
+
+	<typeAlias  alias="DutyVO" type="egovframework.com.uss.omt.service.DutyVO"/>
+	
+	<resultMap id="DutyInf"  class="DutyVO">
+		<result property="deptId" 			column="ORGNZT_ID" 			columnIndex="1" />
+		<result property="dutyId" 			column="DUTY_ID" 			columnIndex="2" />
+		<result property="dutyNm"			column="DUTY_NM"			columnIndex="3" />
+	</resultMap>
+	
+	<insert id="DutyDAO.insertDuty" parameterClass="DutyVO" >
+		<![CDATA[
+			INSERT INTO DUTY_MST 
+				(ORGNZT_ID, DUTY_ID, DUTY_NM)
+			VALUES
+				(#deptId#, #dutyId#, #dutyNm#)
+		]]>
+	</insert>
+	
+	<update id="DutyDAO.updateDuty" parameterClass="DutyVO">
+		<![CDATA[
+			UPDATE DUTY_MST 
+			SET 
+				ORGNZT_ID = #deptId#,
+				DUTY_NM = #dutyNm#
+			WHERE DUTY_ID = #dutyId#
+		]]>
+	</update>
+	
+	<delete id="DutyDAO.deleteDuty" parameterClass="DutyVO">
+			<![CDATA[
+				DELETE FROM DUTY_MST WHERE DUTY_ID = #dutyId#
+			]]>
+	</delete>
+	
+	<select id="DutyDAO.selectDuty" parameterClass="DutyVO" resultMap="DutyInf">
+		<![CDATA[
+			SELECT du.ORGNZT_ID, du.DUTY_ID, du.DUTY_NM
+			FROM DUTY_MST du
+			WHERE du.DUTY_ID = #dutyId#
+		]]>
+	</select>
+
+	<select id="DutyDAO.selectDutyList" parameterClass="DutyVO" resultMap="DutyInf">
+		<![CDATA[
+			SELECT du.ORGNZT_ID, du.DUTY_ID, du.DUTY_NM
+			FROM DUTY_MST du
+			WHERE 1=1 
+		]]>
+		
+		<isNotNull prepend = "AND" property="deptId">
+			<![CDATA[ 	ORGNZT_ID = #deptId# ]]>
+		</isNotNull>
+	</select>
+	
+	<select id="DutyDAO.selectDutyCnt" parameterClass="DutyVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(*)
+			FROM DUTY_MST du
+			WHERE 1=1 
+		]]>
+				
+		<isNotNull prepend="AND" property="deptId">
+			<![CDATA[     du.ORGNZT_ID=#deptId# 	]]>
+		</isNotNull>
+	</select>
+</sqlMap>

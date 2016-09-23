@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="FileAttach">
+	<typeAlias alias="AttachFileVO" type="egovframework.com.uss.ion.apv.service.AttachFileVO" />
+
+	<resultMap id="AttachFileList"  class="egovframework.com.uss.ion.apv.service.AttachFileVO">
+		<result property="attachID" 	column="ATTA_ID" 	columnIndex="1" />
+		<result property="docID" 		column="DOC_ID"		columnIndex="2" />
+		<result property="attachNm"		column="ATTA_NM"	columnIndex="3" />
+		<result property="attachSeq"	column="ATTA_SEQ"	columnIndex="4" />
+		<result property="attachSize"	column="ATTA_SIZE"	columnIndex="5" />
+		<result property="attachType"	column="ATTA_TYPE"	columnIndex="6" />
+	</resultMap>
+	
+	<select id="FileAttachDAO.selectAttachFileListByDocId" parameterClass="AttachFileVO" resultMap="AttachFileList">
+		<![CDATA[
+			SELECT 
+				ATTA_ID, DOC_ID, ATTA_NM, ATTA_SEQ, ATTA_SIZE, ATTA_TYPE 
+			FROM ATTA_INFO
+			WHERE DOC_ID = #docID#			
+		]]>
+	</select>
+
+	<select id="FileAttachDAO.selectAttachFileByAttachId" parameterClass="AttachFileVO" resultMap="AttachFileList">
+		<![CDATA[
+			SELECT 
+				ATTA_ID, DOC_ID, ATTA_NM, ATTA_SEQ, ATTA_SIZE, ATTA_TYPE 
+			FROM ATTA_INFO
+			WHERE ATTA_ID = #attachID#			
+		]]>
+	</select>
+	
+	<insert id="FileAttachDAO.insertAttachFile" parameterClass="AttachFileVO" >
+		<![CDATA[
+			INSERT INTO ATTA_INFO
+				(ATTA_ID, DOC_ID, ATTA_NM, ATTA_SEQ, ATTA_SIZE, ATTA_TYPE)
+			VALUES
+				( #attachID#, #docID#, #attachNm#, #attachSeq#, #attachSize#, #attachType# )			
+		]]>
+	</insert>
+
+	<delete id="FileAttatchDAO.deleteAttachFile" parameterClass="AttachFileVO">
+		<![CDATA[
+			DELETE FROM ATTA_INFO
+			WHERE
+				ATTA_ID = #attachID#			
+		]]>
+	</delete>
+</sqlMap>

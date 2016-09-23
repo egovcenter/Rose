@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="User">
+
+    <typeAlias  alias="egovMap"      type = "egovframework.rte.psl.dataaccess.util.EgovMap"/>
+    <typeAlias  alias="userSearchVO" type = "egovframework.com.uss.umt.service.UserDefaultVO"/>
+    <typeAlias  alias="userVO"       type = "egovframework.com.uss.umt.service.UserManageVO"/>
+
+    <resultMap id="UserManageInf" class="userVO">
+		<result property="uniqId"			column="ESNTL_ID"			columnIndex="1" />
+		<result property="orgnztId"			column="ORGNZT_ID"			columnIndex="2" />
+		<result property="emplyrNm"			column="USER_NM"			columnIndex="3" />
+		<result property="seq"				column="USER_SEQ"			columnIndex="4" />
+		<result property="emplNo"			column="EMPL_NO"			columnIndex="5" />
+		<result property="positionId"		column="POSI_ID"			columnIndex="6" />
+		<result property="dutyId"			column="DUTY_ID"			columnIndex="7" />
+		<result property="securityLvl"		column="USER_SLVL"			columnIndex="8" />
+		<result property="emplyrId"			column="EMPLYR_ID"			columnIndex="9" />
+		<result property="emailAdres"		column="EMAIL_ADRES"		columnIndex="10" />
+		<result property="moblphonNo"		column="MBTLNUM"			columnIndex="11" />
+		<result property="positionNm"		column="POSI_NM"			columnIndex="12" />
+		<result property="dutyNm"			column="DUTY_NM"			columnIndex="13" />
+		<result property="orgnztNm"			column="ORGNZT_NM"			columnIndex="14" />
+    </resultMap>
+    
+    <select id="userManageDAO.selectUserList_S" parameterClass="userSearchVO" resultClass="egovMap">
+		SELECT 
+		    uniqId, userTy, userId , userNm, emailAdres, areaNo, middleTelno, endTelno, moblphonNo, groupId, sttus
+		FROM(
+		    SELECT
+		        ESNTL_ID               uniqId,
+		        'USR03'               userTy,
+		        EMPLYR_ID             userId,
+		        USER_NM             userNm,
+		        EMAIL_ADRES           emailAdres,
+		        AREA_NO               areaNo,
+		        HOUSE_MIDDLE_TELNO      middleTelno,
+		        HOUSE_END_TELNO         endTelno,
+		        MBTLNUM           moblphonNo,
+		        GROUP_ID              groupId,
+		        EMPLYR_STTUS_CODE     sttus
+		    FROM    COMTNEMPLYRINFO
+		    ) A
+        WHERE 1=1
+	        <isNotEqual prepend="AND" property="sbscrbSttus" compareValue="0">
+	            sttus LIKE  #sbscrbSttus#
+	        </isNotEqual>
+	        <isEqual prepend="AND" property="searchCondition" compareValue="0">
+	            userId LIKE #searchKeyword#
+	        </isEqual>
+	        <isEqual prepend="AND" property="searchCondition" compareValue="1">
+	            userNm LIKE '%' #searchKeyword# '%'
+	        </isEqual>
+	        LIMIT #recordCountPerPage# OFFSET #firstIndex#
+    </select>
+    
+    <select id="userManageDAO.selectUserListTotCnt_S" parameterClass="userSearchVO" resultClass="int">
+            SELECT COUNT(1) totcnt
+            FROM(
+            SELECT
+                ESNTL_ID               uniqId,
+                'USR03'               userTy,
+                EMPLYR_ID             userId,
+                USER_NM             userNm,
+                EMAIL_ADRES           emailAdres,
+                AREA_NO               areaNo,
+                HOUSE_MIDDLE_TELNO      middleTelno,
+                HOUSE_END_TELNO         endTelno,
+                MBTLNUM           moblphonNo,
+                GROUP_ID              groupId,
+                EMPLYR_STTUS_CODE     sttus,
+                SBSCRB_DE             sbscrbDe
+            FROM    COMTNEMPLYRINFO
+            ) A
+        WHERE 1=1
+            <isNotEqual prepend="AND" property="sbscrbSttus" compareValue="0">
+                sttus LIKE  #sbscrbSttus#
+            </isNotEqual>
+            <isEqual prepend="AND" property="searchCondition" compareValue="0">
+                userId LIKE #searchKeyword#
+            </isEqual>
+            <isEqual prepend="AND" property="searchCondition" compareValue="1">
+                userNm LIKE '%' #searchKeyword# '%'
+            </isEqual>
+    </select>
+    
+    <select id="userManageDAO.selectUserInfList"  parameterClass="userVO" resultMap="UserManageInf">
+		SELECT
+			user.ESNTL_ID,			user.ORGNZT_ID,				user.USER_NM,				user.USER_SEQ,			user.EMPL_NO,
+			user.POSI_ID,			user.DUTY_ID,				user.USER_SLVL,				user.EMPLYR_ID,			user.EMAIL_ADRES,
+			user.MBTLNUM,			posi.POSI_NM,				duty.DUTY_NM, 				dept.ORGNZT_NM,			user.COMPANY_ID
+		FROM 
+			COMTNEMPLYRINFO AS user 
+			    LEFT OUTER JOIN POSI_MST AS posi
+				    ON (user.POSI_ID = posi.POSI_ID)
+			<isNotEmpty prepend="AND" property="companyId">
+				     (#companyId# = posi.ORGNZT_ID)
+			</isNotEmpty>
+					LEFT OUTER JOIN DUTY_MST AS duty
+			    		ON (user.DUTY_ID = duty.DUTY_ID)
+			<isNotEmpty prepend="AND" property="companyId">
+			    		 (#companyId# = duty.ORGNZT_ID)
+			</isNotEmpty>
+			,COMTNORGNZTINFO AS dept
+		WHERE 1=1
+            <isNotEmpty prepend="AND" property="orgnztId">
+                user.ORGNZT_ID = #orgnztId#
+       			AND dept.ORGNZT_ID = #orgnztId#
+            </isNotEmpty>			
+    </select>
+    
+    <insert id="userManageDAO.insertUser_S">
+        <![CDATA[
+            INSERT INTO COMTNEMPLYRINFO 
+                (   ESNTL_ID            ,
+                    EMPLYR_ID           ,
+                    USER_NM           	,
+                    PASSWORD            ,
+                    PASSWORD_HINT       ,
+                    PASSWORD_CNSR       ,
+                    EMPL_NO             ,
+                    IHIDNUM             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY              ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO  ,
+                    HOUSE_END_TELNO     ,
+                    FXNUM               ,
+                    HOUSE_ADRES         ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM             ,
+                    EMAIL_ADRES         ,
+                    OFCPS_NM            ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE        ,
+                    EMPLYR_STTUS_CODE   ,
+                    SBSCRB_DE           ,
+                    CRTFC_DN_VALUE      ,
+                    USER_SEQ			,
+                    POSI_ID				,
+                    DUTY_ID				,
+                    USER_SLVL			,
+                    USER_RMRK			,
+                    USER_TYPE        	,
+                    USER_LPWD_DT		,
+                    USER_SPWD			,
+                    USER_ABS_F	        ,
+                    COMPANY_ID 			)		
+	            VALUES (
+                    #uniqId#            ,
+                    #emplyrId#          ,
+                    #emplyrNm#          ,
+                    #password#          ,
+                    #passwordHint#      ,
+                    #passwordCnsr#      ,                   
+                    #emplNo#            ,
+                    #ihidnum#           ,
+                    #sexdstnCode#       ,
+                    #brth#              ,
+                    #areaNo#            ,
+                    #homemiddleTelno#   ,
+                    #homeendTelno#      ,
+                    #fxnum#             ,
+                    #homeadres#         ,
+                    #detailAdres#       ,
+                    #zip#               ,
+                    #offmTelno#         ,
+                    #moblphonNo#        ,
+                    #emailAdres#        ,
+                    #ofcpsNm#           ,
+                    #groupId#           ,
+                    #orgnztId#          ,
+                    #insttCode#         ,
+                    'P'   				,
+                    sysdate()           ,
+                    #subDn#             ,
+                    #seq#				,
+                    #positionId#		,
+                    #dutyId#			,
+                    #securityLvl#		,
+                    #remark#			,
+                    #userType#			,
+                    sysdate()			,
+                    #approvalPassword#	,
+                    '2'					,
+                    #companyId#			)
+        ]]>
+    </insert>
+    
+    <insert id="userManageDAO.insertAuthorityOfUser">
+    	<![CDATA[
+    		INSERT INTO COMTNEMPLYRSCRTYESTBS
+    			(SCRTY_DTRMN_TRGET_ID, MBER_TY_CODE, AUTHOR_CODE)
+    		VALUES (#uniqId#, 'USR03', 'ROLE_USER')
+    	]]>
+    </insert>
+    
+    <delete id="userManageDAO.deleteUser_S">
+        <![CDATA[
+            DELETE FROM COMTNEMPLYRINFO 
+            WHERE ESNTL_ID=#delId#
+        ]]>
+    </delete>
+    
+    <select id="userManageDAO.selectUser_S"  parameterClass="userVO" resultClass="userVO">
+        <![CDATA[
+            SELECT
+                ESNTL_ID          	uniqId            ,
+                'USR03'           	userTy			  ,
+	            EMPLYR_ID         	emplyrId          ,
+	            USER_NM           	emplyrNm          ,
+	            PASSWORD          	password          ,
+	            PASSWORD_HINT     	passwordHint      ,
+	            PASSWORD_CNSR     	passwordCnsr      ,
+	            EMPL_NO           	emplNo            ,
+	            IHIDNUM           	ihidnum           ,
+	            SEXDSTN_CODE      	sexdstnCode       ,
+	            BRTHDY            	brth              ,
+	            AREA_NO             areaNo            ,
+	            HOUSE_MIDDLE_TELNO  homemiddleTelno   ,
+	            HOUSE_END_TELNO     homeendTelno      ,
+	            FXNUM             	fxnum             ,
+	            HOUSE_ADRES         homeadres         ,
+	            DETAIL_ADRES      	detailAdres       ,
+	            ZIP               	zip               ,
+	            OFFM_TELNO        	offmTelno         ,
+	            MBTLNUM       		moblphonNo        ,
+	            EMAIL_ADRES       	emailAdres        ,
+	            OFCPS_NM          	ofcpsNm           ,
+	            GROUP_ID          	groupId           ,
+	            ORGNZT_ID         	orgnztId          ,
+	            (SELECT ORGNZT_NM FROM COMTNORGNZTINFO WHERE ORGNZT_ID = orgnztId ) orgnztNm,
+	            PSTINST_CODE        insttCode         ,
+	            EMPLYR_STTUS_CODE 	emplyrSttusCode   , 
+	            SBSCRB_DE         	sbscrbDe          ,
+	            CRTFC_DN_VALUE      subDn		      ,
+	            USER_SEQ			seq				  ,
+	            POSI_ID				positionId		  ,
+	            (SELECT POSI_NM FROM POSI_MST WHERE POSI_ID = positionId ) positionNm,
+	            DUTY_ID				dutyId			  ,
+	            (SELECT DUTY_NM FROM DUTY_MST WHERE DUTY_ID = dutyId ) dutyNm,
+	            USER_SLVL			securityLvl		  ,
+	            COMPANY_ID			companyId		  ,
+	            (SELECT ORGNZT_NM FROM COMTNORGNZTINFO WHERE ORGNZT_ID = companyId ) companyNm,
+            	USER_TYPE			userType		  ,
+            	USER_RMRK           remark			
+        FROM 
+        	COMTNEMPLYRINFO
+        WHERE 
+        	ESNTL_ID=#uniqId#
+        ]]>
+        <isNotEmpty prepend="AND" property="companyId">
+		    (#companyId# = COMPANY_ID)
+		</isNotEmpty>
+    </select>
+  
+    <update id="userManageDAO.updateUser_S">
+        <![CDATA[
+            UPDATE COMTNEMPLYRINFO 
+            SET EMPLYR_ID           = #emplyrId#        , 
+                USER_NM             = #emplyrNm#        ,
+                PASSWORD_HINT       = #passwordHint#    ,
+                PASSWORD_CNSR       = #passwordCnsr#    ,
+                PASSWORD			= #password#		,
+                EMPL_NO             = #emplNo#          ,
+                IHIDNUM             = #ihidnum#         ,
+                SEXDSTN_CODE        = #sexdstnCode#     ,
+                BRTHDY              = #brth#            ,
+                AREA_NO             = #areaNo#          ,
+                HOUSE_MIDDLE_TELNO  = #homemiddleTelno# ,
+                HOUSE_END_TELNO     = #homeendTelno#    ,
+                FXNUM               = #fxnum#           ,
+                HOUSE_ADRES         = #homeadres#       ,
+                DETAIL_ADRES        = #detailAdres#     ,
+                ZIP                 = #zip#             ,
+                OFFM_TELNO          = #offmTelno#       ,
+                MBTLNUM        		= #moblphonNo#      ,
+                EMAIL_ADRES         = #emailAdres#      ,
+                OFCPS_NM            = #ofcpsNm#         ,
+                GROUP_ID            = #groupId#         ,
+                ORGNZT_ID           = #orgnztId#        ,
+                PSTINST_CODE        = #insttCode#       ,
+                EMPLYR_STTUS_CODE   = #emplyrSttusCode# ,
+                CRTFC_DN_VALUE      = #subDn#	,
+                USER_SEQ			= #seq#				,
+                POSI_ID				= #positionId#			,
+                DUTY_ID				= #dutyId#			,
+                USER_SLVL			= #securityLvl#		,
+                USER_RMRK			= #remark#			,
+                USER_TYPE			= #userType#   		,
+                COMPANY_ID			= #companyId#     	
+            WHERE ESNTL_ID = #uniqId#
+        ]]>
+    </update>
+    
+    <insert id="userManageDAO.insertUserHistory_S">
+        <![CDATA[
+            INSERT INTO COMTHEMPLYRINFOCHANGEDTLS 
+                (   EMPLYR_ID           ,
+                    EMPL_NO             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    GROUP_ID            ,
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    ESNTL_ID             ,
+                    CHANGE_DE           ,
+                    COMPANY_ID			)
+            SELECT 
+                    EMPLYR_ID           ,
+                    EMPL_NO             ,
+                    SEXDSTN_CODE        ,
+                    BRTHDY                ,
+                    AREA_NO             ,
+                    HOUSE_MIDDLE_TELNO    ,
+                    HOUSE_END_TELNO       ,
+                    FXNUM               ,
+                    HOUSE_ADRES           ,
+                    DETAIL_ADRES        ,
+                    ZIP                 ,
+                    OFFM_TELNO          ,
+                    MBTLNUM         ,
+                    EMAIL_ADRES         ,
+                    GROUP_ID            ,COMORGNZT
+                    ORGNZT_ID           ,
+                    PSTINST_CODE          ,
+                    EMPLYR_STTUS_CODE   ,
+                    ESNTL_ID             ,
+                    now()				,
+                    COMPANY_ID
+            FROM COMTNEMPLYRINFO
+            WHERE ESNTL_ID = #uniqId#
+        ]]>
+    </insert>
+    
+    <select id="userManageDAO.checkIdDplct_S" resultClass="int">
+        <![CDATA[
+            SELECT COUNT(1) usedCnt
+                FROM(
+                SELECT
+                    EMPLYR_ID             userId
+                FROM    COMTNEMPLYRINFO
+                UNION ALL
+                SELECT
+                    ENTRPRS_MBER_ID        userId
+                FROM    COMTNENTRPRSMBER
+                UNION ALL
+                SELECT
+                    MBER_ID               userId
+                FROM    COMTNGNRLMBER
+                ) A
+            WHERE userId = #checkId#
+        ]]>
+    </select>
+    
+    <update id="userManageDAO.updatePassword_S">
+        <![CDATA[
+            UPDATE COMTNEMPLYRINFO 
+            SET 
+                   PASSWORD   =  #password#
+            WHERE  ESNTL_ID  = #uniqId#
+        ]]>
+    </update>
+    
+    <select id="userManageDAO.selectPassword_S" resultClass="userVO">
+        <![CDATA[
+            SELECT
+                    PASSWORD          password 
+            FROM    COMTNEMPLYRINFO
+            WHERE   ESNTL_ID=#uniqId#
+        ]]>
+    </select>
+    <select id="userManageDAO.selectUserInfo"  parameterClass="userVO" resultMap="UserManageInf">
+		SELECT
+			user.ESNTL_ID,			
+			user.ORGNZT_ID,				
+			user.USER_NM,				
+			user.USER_SEQ,			
+			user.EMPL_NO,
+			user.POSI_ID,			
+			user.DUTY_ID,				
+			user.USER_SLVL,				
+			user.EMPLYR_ID,			
+			user.EMAIL_ADRES,
+			user.MBTLNUM,			
+			posi.POSI_NM,				
+			duty.DUTY_NM, 				
+			dept.ORGNZT_NM,			
+			user.COMPANY_ID
+		FROM 
+			COMTNEMPLYRINFO AS user 
+			    LEFT OUTER JOIN POSI_MST AS posi
+				    ON (user.POSI_ID = posi.POSI_ID)
+				    <isNotEmpty prepend="AND" property="companyId">
+				     	(#companyId# = posi.ORGNZT_ID)
+				     </isNotEmpty>
+					LEFT OUTER JOIN DUTY_MST AS duty
+			    		ON (user.DUTY_ID = duty.DUTY_ID)
+			    		<isNotEmpty prepend="AND" property="companyId">
+			    			(#companyId# = duty.ORGNZT_ID)
+			    		</isNotEmpty>
+						LEFT OUTER JOIN COMTNORGNZTINFO AS dept
+							ON (user.ORGNZT_ID = dept.ORGNZT_ID)
+		WHERE 
+			user.ESNTL_ID=#uniqId#			
+    </select>
+        
+    <select id="userManageDAO.selectUserCntByPosition"  parameterClass="java.lang.String" resultClass="java.lang.Integer">
+        <![CDATA[
+        	SELECT 
+        		COUNT(*)
+        	FROM 
+        		COMTNEMPLYRINFO
+        	WHERE
+        		POSI_ID = #posiId#
+		]]>
+	</select>
+	
+	<select id="userManageDAO.selectUserCntByDuty"  parameterClass="java.lang.String" resultClass="java.lang.Integer">
+        <![CDATA[
+            SELECT 
+        		COUNT(*)
+        	FROM 
+        		COMTNEMPLYRINFO
+        	WHERE
+        		DUTY_ID = #dutyId#
+		]]>
+	</select>
+</sqlMap>

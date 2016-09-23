@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Absence1">
+
+	<typeAlias alias="AbsenceVO" type="egovframework.com.uss.omt.service.AbsenceVO" />
+	
+	<resultMap id="AbsenceDetail"  class="egovframework.com.uss.omt.service.AbsenceVO">
+		<result property="absId" 		column="ABS_ID" 		columnIndex="1" />
+		<result property="userId" 		column="USER_ID"		columnIndex="2" />
+		<result property="absSDt"		column="ABS_S_DT"		columnIndex="3" />
+		<result property="absEDt"		column="ABS_E_DT"		columnIndex="4" />
+		<result property="absRmrk"		column="ABS_RMRK"		columnIndex="5" />
+		<result property="absSubuserId"	column="ABS_SUBUSER_ID"	columnIndex="6" />
+	</resultMap>
+	
+	<insert id="AbsenceDAO.insertAbsence" parameterClass="AbsenceVO">
+		<![CDATA[
+			INSERT INTO ABSENCE
+				(ABS_ID, USER_ID, ABS_S_DT, ABS_E_DT, ABS_RMRK, ABS_SUBUSER_ID)
+			VALES
+				(#absId#, #userId#, #absSDt#, #absEDt#, #absRmrk#, #absSubuserId#);
+		]]>
+	</insert>
+	
+	
+	<update id="AbsenceDAO.updateAbsence" parameterClass="AbsenceVO">
+		<![CDATA[
+			UPDATE ABSENCE 
+			SET
+				USER_ID = #userId#,
+				ABS_S_DT = #absSDt#,
+				ABS_E_DT = #absEDt#,
+				ABS_RMRK = #absRmrk#,
+				ABS_SUBUSER_ID = #absSubuserId#
+			WHERE ABS_ID = #absId#	
+		]]>
+	</update>
+	
+	<delete id="AbsenceDAO.deleteAbsence" parameterClass="AbsenceVO" >
+		<![CDATA[
+			DELETE FROM ABSENCE WHERE ABS_ID = #absId#		
+		]]>
+	</delete>
+	
+	<select id="AbsenceDAO.selectAbsence" parameterClass="AbsenceVO" resultMap="AbsenceDetail">
+		<![CDATA[
+			SELECT ab.ABS_ID, ab.USER_ID, ab.ABS_S_DT, ab.ABS_E_DT, ab.ABS_RMRK, ab.ABS_SUBUSER_ID
+			FROM ABSENCE ab
+			WHERE ab.ABS_ID = #absId# 		
+		]]>
+	</select>
+	
+	<select id="AbsenceDAO.selectAbsenceList" resultMap="AbsenceDetail">
+		<![CDATA[
+			SELECT ab.ABS_ID, ab.USER_ID, ab.ABS_S_DT, ab.ABS_E_DT, ab.ABS_RMRK, ab.ABS_SUBUSER_ID
+			FROM ABSENCE ab
+		]]>
+	</select>
+</sqlMap>

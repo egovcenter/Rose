@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Dept">
+
+	<typeAlias  alias="DeptVO" type="egovframework.com.uss.omt.service.DeptVO"/>
+	<resultMap id="DeptDetail"  class="egovframework.com.uss.omt.service.DeptVO">
+		<result property="deptId" 			column="ORGNZT_ID" 			columnIndex="1" />
+		<result property="deptNm" 			column="ORGNZT_NM" 			columnIndex="2" />
+		<result property="deptCd"			column="DEPT_CD"			columnIndex="3" />
+	    <result property="deptRboxF"		column="DEPT_RBOX_F"		columnIndex="4" />
+		<result property="deptBoxF" 		column="DEPT_BOX_F"			columnIndex="5" />
+		<result property="deptTopF"			column="DEPT_TOP_F"			columnIndex="6" />
+	    <result property="deptRboxUserId"	column="DEPT_RBOX_USER_ID"	columnIndex="7" />
+	    <result property="deptRboxUserNm"	column="RBOX_USER_NM"		columnIndex="8" />
+		<result property="deptBoxUserId" 	column="DEPT_BOX_USER_ID" 	columnIndex="9" />
+		<result property="deptBoxUserNm" 	column="BOX_USER_NM" 		columnIndex="10" />
+		<result property="deptSboxUserId"	column="DEPT_SBOX_USER_ID"	columnIndex="11" />
+		<result property="deptSboxUserNm"	column="SBOX_USER_NM"		columnIndex="12" />
+	    <result property="deptAdminUserId"	column="DEPT_COMP_USER_ID"	columnIndex="13" />
+	    <result property="deptAdminUserNm"	column="COMP_USER_NM"		columnIndex="14" />
+		<result property="deptStatus" 		column="DEPT_STATUS" 		columnIndex="15" />
+		<result property="deptUpdateDt"		column="DEPT_UPDATE_DT"		columnIndex="16" />		
+		<result property="deptDc"			column="ORGNZT_DC"			columnIndex="17" />		
+		<result property="deptParId"		column="ORGNZT_PAR_ID"		columnIndex="18" />		
+		<result property="deptSeq"			column="ORGNZT_SEQ"			columnIndex="19" />		
+	</resultMap>
+		
+	<resultMap id="DeptTree"  class="egovframework.com.uss.omt.service.DeptVO">
+		<result property="deptId" 			column="ORGNZT_ID" 			columnIndex="1" />
+		<result property="deptNm" 			column="ORGNZT_NM" 			columnIndex="2" />
+		<result property="deptParId"		column="ORGNZT_PAR_ID"		columnIndex="3" />		
+		<result property="deptSeq"			column="ORGNZT_SEQ"			columnIndex="4" />		
+		<result property="deptLevel"		column="LEV"				columnIndex="5" />		
+	</resultMap>
+
+	<resultMap id="TreePosInf" class="egovframework.com.uss.omt.service.TreePosVO">
+		<result property="lower"			column="LOWER"				columnIndex="1" />
+		<result property="sibling"			column="SIBLING"			columnIndex="2" />
+		<result property="upper"			column="UPPER"				columnIndex="3" />				
+	</resultMap>
+	
+	<parameterMap class="egovframework.com.uss.omt.service.DeptVO" id="pDeptParam">
+		<parameter property="funcType" 			jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="baseOrgnztId" 		jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptId" 			jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptNm" 			jdbcType="VARCHAR" 		javaType="java.lang.String" 	mode="IN"/>
+		<parameter property="deptParId" 		jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptSeq" 			jdbcType="INT" 			javaType="java.lang.Integer" 	mode="IN"/> 
+		<parameter property="deptCd" 			jdbcType="VARCHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptRboxF" 		jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptBoxF" 			jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptTopF" 			jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptRboxUserId" 	jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptBoxUserId" 	jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptSboxUserId" 	jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptAdminUserId" 	jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 
+		<parameter property="deptStatus" 		jdbcType="CHAR" 		javaType="java.lang.String" 	mode="IN"/> 	
+		<parameter property="deptUpdateDt" 		jdbcType="DATETIME" 	javaType="java.util.Date" 		mode="IN"/> 	
+		<parameter property="deptDc" 			jdbcType="VARCHAR" 		javaType="java.lang.String" 	mode="IN"/>
+	</parameterMap>
+    
+	<procedure id="proc_dept_add" parameterMap="pDeptParam">
+		<![CDATA[
+			{CALL PROC_DEPT_TREE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}
+		]]>
+	</procedure>
+ 
+	<select id="DeptDAO.selectDeptTree" parameterClass="DeptVO" resultMap="DeptTree">
+		<![CDATA[
+			SELECT  dm.orgnzt_id AS ORGNZT_ID, dm.orgnzt_nm AS ORGNZT_NM, 
+					dm.orgnzt_par_id AS ORGNZT_PAR_ID, dm.orgnzt_seq AS ORGNZT_SEQ, CAST(dm2.lev AS CHAR) AS LEV
+			FROM    (
+					SELECT  GET_DEPT_TREE(orgnzt_id) AS orgnzt_id, @level as lev
+					FROM    (
+							SELECT  @start_with := #deptId#,
+									@orgnzt_id := @start_with,
+									@level := 0
+							) vars, COMTNORGNZTINFO
+					WHERE   (@orgnzt_id IS NOT NULL)
+					) dm2
+			JOIN    COMTNORGNZTINFO dm
+			ON      dm.orgnzt_id = dm2.orgnzt_id		
+		]]>
+	</select>
+	
+	<select id="DeptDAO.selectCompanyId" parameterClass="DeptVO" resultClass="java.lang.String">
+		<![CDATA[
+				SELECT GET_COMPANY_ID(orgnzt_id)
+				FROM    (
+						SELECT  @orgnzt_id := #deptId#
+						) vars, COMTNORGNZTINFO org
+				WHERE
+					org.orgnzt_id = #deptId#
+					
+		]]>
+	</select>
+	
+	<select id="DeptDAO.selectCompanyTree" resultMap="DeptTree">
+		<![CDATA[
+			SELECT  
+				dm.orgnzt_id AS ORGNZT_ID, 
+				dm.orgnzt_nm AS ORGNZT_NM, 
+				dm.orgnzt_par_id AS ORGNZT_PAR_ID, 
+				dm.orgnzt_seq AS ORGNZT_SEQ, 
+				'1' AS LEV
+			FROM    
+				COMTNORGNZTINFO dm		
+			WHERE 
+				dm.orgnzt_par_id IN (SELECT ORGNZT_ID FROM COMTNORGNZTINFO WHERE ORGNZT_NM='ROOT')
+		]]>
+	</select>
+
+	<select id="DeptDAO.selectAllDeptTree" parameterClass="DeptVO" resultMap="DeptTree">
+		<![CDATA[
+			SELECT  dm.orgnzt_id AS ORGNZT_ID, dm.orgnzt_nm AS ORGNZT_NM, 
+					dm.orgnzt_par_id AS ORGNZT_PAR_ID, dm.orgnzt_seq AS ORGNZT_SEQ, CAST(dm2.lev AS CHAR) AS LEV
+			FROM    (
+					SELECT  GET_DEPT_TREE(orgnzt_id) AS orgnzt_id, @level as lev
+					FROM    (
+							SELECT  @start_with := #baseOrgnztId#,
+									@orgnzt_id := @start_with,
+									@level := 0
+							) vars, COMTNORGNZTINFO
+					WHERE   (@orgnzt_id IS NOT NULL)
+					) dm2
+			JOIN    COMTNORGNZTINFO dm
+			ON      dm.orgnzt_id = dm2.orgnzt_id		
+		]]>
+	</select>
+	
+	<select id="DeptDAO.selectDeptTreeWithDepth" parameterClass="DeptVO" resultMap="DeptTree">
+		<![CDATA[
+			SELECT	dm.orgnzt_id AS ORGNZT_ID,
+				dm.orgnzt_nm AS ORGNZT_NM,
+				dm.orgnzt_par_id AS ORGNZT_PAR_ID,
+				dm.orgnzt_seq AS ORGNZT_SEQ,
+				CAST(dm2.lev AS CHAR) AS LEV
+			FROM	(SELECT GET_DEPT_TREE(ORGNZT_ID) AS ORGNZT_ID, @level AS LEV
+				 FROM	(SELECT @start_with := #baseOrgnztId#,
+						@orgnzt_id := @start_with,
+						@level := 0) VARS, COMTNORGNZTINFO
+				 WHERE 	@ORGNZT_ID IS NOT NULL) dm2
+			JOIN 	COMTNORGNZTINFO dm
+			ON	dm.ORGNZT_ID = dm2.ORGNZT_ID
+			]]>
+			
+			<isEqual prepend="AND" property="deptLevel" compareValue="1">
+			<![CDATA[
+				LEV = 1
+			]]>
+			</isEqual>
+	</select>
+	
+	<procedure id="proc_dept_modify" parameterMap="pDeptParam">
+		<![CDATA[
+			{CALL PROC_DEPT_TREE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)}
+		]]>
+	</procedure>
+
+	<delete id="DeptDAO.deleteDept" parameterClass="DeptVO">
+		<![CDATA[
+			DELETE FROM COMTNORGNZTINFO WHERE ORGNZT_ID = #deptId#
+		]]>
+	</delete>
+	
+	<select id="DeptDAO.selectDept" parameterClass="DeptVO" resultMap="DeptDetail">
+		<![CDATA[
+			SELECT dm.ORGNZT_ID,
+				dm.ORGNZT_NM,
+				dm.DEPT_CD,
+				dm.DEPT_RBOX_F,
+				dm.DEPT_BOX_F,
+				dm.DEPT_TOP_F,
+				dm.DEPT_RBOX_USER_ID,
+                (SELECT USER_NM FROM COMTNEMPLYRINFO WHERE dm.DEPT_RBOX_USER_ID = ESNTL_ID) AS RBOX_USER_NM,
+				dm.DEPT_BOX_USER_ID,
+                (SELECT USER_NM FROM COMTNEMPLYRINFO WHERE dm.DEPT_BOX_USER_ID = ESNTL_ID) AS BOX_USER_NM,
+				dm.DEPT_SBOX_USER_ID,
+                (SELECT USER_NM FROM COMTNEMPLYRINFO WHERE dm.DEPT_SBOX_USER_ID = ESNTL_ID) AS SBOX_USER_NM,
+				dm.DEPT_COMP_USER_ID,
+                (SELECT USER_NM FROM COMTNEMPLYRINFO WHERE dm.DEPT_COMP_USER_ID = ESNTL_ID) AS COMP_USER_NM,
+				dm.DEPT_STATUS,
+				dm.DEPT_UPDATE_DT,
+				dm.ORGNZT_DC,
+				dm.ORGNZT_PAR_ID,
+				dm.ORGNZT_SEQ
+			FROM 	COMTNORGNZTINFO dm
+			WHERE 	dm.ORGNZT_ID = #deptId#
+		]]>
+	</select>
+	
+	<select id="DeptDAO.selectTreePos" parameterClass="DeptVO" resultMap="TreePosInf">
+		<![CDATA[
+			SELECT
+				dm.ORGNZT_ID AS LOWER,
+				dm.ORGNZT_PAR_ID AS SIBLING,
+				dp.ORGNZT_PAR_ID AS UPPER
+			FROM
+				COMTNORGNZTINFO dm
+			LEFT OUTER JOIN COMTNORGNZTINFO dp
+			ON dp.ORGNZT_ID = dm.ORGNZT_PAR_ID
+			WHERE dm.ORGNZT_ID = #deptId#
+		]]>
+	</select>
+</sqlMap>

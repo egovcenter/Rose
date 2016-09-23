@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Position">
+
+	<typeAlias  alias="PositionVO" type="egovframework.com.uss.omt.service.PositionVO"/>
+	
+	<resultMap id="PositionInf"  class="PositionVO">
+		<result property="deptId" 			column="ORGNZT_ID" 			columnIndex="1" />
+		<result property="posiId" 			column="POSI_ID" 			columnIndex="2" />
+		<result property="posiNm"			column="POSI_NM"			columnIndex="3" />
+	    <result property="posiLv"			column="POSI_LV"			columnIndex="4" />
+	</resultMap>
+	
+	<insert id="PositionDAO.insertPosition" parameterClass="PositionVO" >
+		<![CDATA[
+			INSERT INTO POSI_MST 
+				(ORGNZT_ID, POSI_ID, POSI_NM, POSI_LV)
+			VALUES
+				(#deptId#, #posiId#, #posiNm#, #posiLv#)
+		]]>
+	</insert>
+	
+	<update id="PositionDAO.updatePosition" parameterClass="PositionVO">
+		<![CDATA[
+			UPDATE POSI_MST 
+			SET 
+				ORGNZT_ID = #deptId#,
+				POSI_NM = #posiNm#,
+				POSI_LV = #posiLv#
+			WHERE POSI_ID = #posiId#
+		]]>
+	</update>
+	
+	<delete id="PositionDAO.deletePosition" parameterClass="PositionVO">
+		<![CDATA[
+			DELETE FROM POSI_MST WHERE POSI_ID = #posiId#
+		]]>
+	</delete>
+	
+	<select id="PositionDAO.selectPosition" parameterClass="PositionVO" resultMap="PositionInf">
+		<![CDATA[
+			SELECT po.ORGNZT_ID, po.POSI_ID, po.POSI_NM, po.POSI_LV
+			FROM POSI_MST po
+			WHERE po.POSI_ID = #posiId#
+		]]>
+	</select>
+
+	<select id="PositionDAO.selectPositionList" parameterClass="PositionVO" resultMap="PositionInf">
+		<![CDATA[
+			SELECT po.ORGNZT_ID, po.POSI_ID, po.POSI_NM, po.POSI_LV
+			FROM POSI_MST po
+			WHERE 1=1 
+		]]>
+		
+		<isNotNull prepend="AND" property="deptId">
+			<![CDATA[ 
+		        po.ORGNZT_ID = #deptId#
+			]]>
+		</isNotNull>
+		
+		<![CDATA[
+			ORDER BY po.POSI_LV DESC
+		]]>
+	</select>
+	
+	<select id="PositionDAO.selectPositionCnt" parameterClass="PositionVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT COUNT(*)
+			FROM POSI_MST po
+			WHERE 1=1 
+		]]>
+
+		<isNotNull prepend="AND" property="deptId">
+			<![CDATA[  ORGNZT_ID = #deptId#   ]]>
+		</isNotNull>
+	</select>
+	
+</sqlMap>

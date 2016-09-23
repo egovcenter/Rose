@@ -1,0 +1,410 @@
+/*
+.fileUpload {
+	border : 1px;
+	background : #cc9 top
+}
+
+.fileUpload #files {
+	background : #ee8
+}
+
+.del {
+	font-size : 13px;
+	color : #777777;
+}
+
+}
+
+*/
+
+/*
+div{border:1px solid}
+
+form{border:1px solid red}
+*/
+.fileUpload {
+	width: 100%;
+	border: 1px solid #bbb;
+	margin-top: 10px;
+	table-layout: fixed;
+}
+
+.fileUpload div, input, textarea, select, button, table {
+	font-family: Dotum, Gulim, Arial, Verdana, MS Gothic, sans-serif
+	font-size: 12px;
+	color: #444
+}
+
+.fileUpload ul, ol, li, form, input {
+	margin: 0;
+	padding: 0
+}
+
+.fileUpload ul, ol {
+	list-style: none
+}
+
+.fileUpload a {
+	color: #444
+}
+
+.fileUpload .add_filebg {
+	background: #DDD;
+	float: left;
+	height: 22px;
+	width: 100%;
+	padding-top: 5px;
+	padding-bottom: 3px;
+}
+.fileUpload .theader_btn {
+	position: relative;
+	top: 0px;
+	height: 24px;
+	background: url(./images/file_updown.png)  right top no-repeat;
+	font-weight: normal;
+	font-size: 12px;
+	color: #888;
+	overflow: hidden;
+	line-height: 24px;
+	text-align: center;
+	float: left;
+	text-decoration: none;
+	width: 46px;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+.fileUpload .theader_btn a {
+	float: right;
+	height: 23px;
+	width: 23px;
+	cursor: pointer;
+}
+.fileUpload .theader_btn .attach_up_btn:hover {
+	background: url(./images/file_updown.png) -24px -24px no-repeat;
+}
+.fileUpload .theader_btn .attach_down_btn:hover {
+	background: url(./images/file_updown.png) 0px -24px no-repeat;
+}
+
+.fileUpload .theader_h1 {
+	height: 24px;
+	background: url(./images/bg_list_head.gif) bottom repeat-x;
+	font-weight: normal;
+	font-size: 12px;
+	color: #888;
+	overflow: hidden;
+	line-height: 24px;
+	text-align: center;
+	float: left;
+	text-decoration: none;
+	width: 80%;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+.fileUpload .theader_h2 {
+	height: 24px;
+	background: url(./images/bg_list_head2.png) no-repeat left bottom;
+	font-weight: normal;
+	font-size: 12px;
+	color: #888;
+	overflow: hidden;
+	line-height: 24px;
+	text-align: center;
+	float: left;
+	text-decoration: none;
+	width: 20%;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.fileUpload .filelistlayer .filelist {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.fileUpload .filelistlayer_popup .filelist_popup {
+    list-style: none outside none;
+    margin: 0;
+    padding: 0;
+    width: 400px;
+}
+
+.fileUploading {
+	
+}
+
+.fileUpload .filelist li {
+	display: block;
+	width: 100%;
+	height: 15px;
+	overflow: hidden;
+	margin-top: 2px;
+	font-size: 12px;
+}
+
+.fileUpload .filelist li:first-child {
+	margin-top: 5px
+}
+
+.fileUpload .filelist li div {
+	*display: inline-block;
+	_width /**/: 100%;
+	height: 16px;
+	padding-right: 105px
+}
+
+.fileUpload .filelist li div:after {
+	display: block;
+	clear: both;
+	content: ''
+}
+
+.fileUpload .filelist li .filename {
+	font-size: 11px;
+	color: #999;
+	text-decoration: none;
+	float: left;
+	width: 100%;
+	height: 15px;
+	overflow: hidden;
+	line-height: 16px;
+	position: relative;
+	white-space: nowrap;
+}
+
+.fileUpload .filelist li .filename img {
+	margin-right: 3px;
+}
+
+.fileUpload .filelist li .fileprogress {
+	display: block;
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 100px;
+	height: 15px;
+	margin-left: 10px;
+}
+
+.fileUpload .filelist li .filesize {
+	float: left;
+	position: relative;
+	left: 105px;
+	width: 80px;
+	height: 15px;
+	margin-left: -100px;
+	text-align: right;
+	font-size: 11px;
+	color: #aaa;
+}
+
+.fileUpload .filelist li .btn_x {
+	display: block;
+	overflow: hidden;
+	float: left;
+	position: relative;
+	left: 105px;
+	width: 16px;
+	height: 16px;
+	margin-left: -16px;
+}
+
+.filelist li img {
+	margin: 0 0 0 5px;
+	vertical-align: middle;
+}
+
+
+.fileUpload .wfw_file_box {
+	position: relative;
+	width: 86px;
+	height: 22px;
+	overflow: hidden;
+	margin-right: 5px;
+}
+
+.fileUpload .wfw_file_box_popup {
+	position: relative;
+	width: 40px;
+	height: 22px;
+	overflow: hidden;
+	background-image: url("./images/btn_fileadd_txt.gif");
+	margin-left:3px;
+	margin-right: 5px;
+}
+
+#file {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	opacity: 0;
+	filter: alpha(opacity =       0);
+	cursor: pointer;
+}
+
+#wfw_file_box input {
+	position: absolute;
+	bottom: 0;
+	opacity: 0;
+	filter: alpha(opacity =       0);
+	cursor: pointer;
+}
+
+.filegage {
+	padding: 3px 0 2px 0;
+	margin-left: 5px;
+}
+
+.floatLayer {
+	float: left;
+}
+
+.fileUploadLeftImage {
+	
+}
+
+.fileUploadRightImage {
+	
+}
+
+.progressimgdiv {
+	width: 200px;
+}
+
+.progressimgdiv_* {
+	width: 200px;
+}
+
+#showprogressimg {
+	height: 15;
+}
+
+.fileUpload .filelistlayer {
+	border: 1px solid silver;
+	height: 100px;
+	overflow: auto;
+}
+
+.fileUpload .filelistlayer:hover {
+	border: 1px solid gray;
+}
+
+.fileUpload .filelistlayer_popup
+{
+    background-color: #FFFFFF;
+    border: 1px solid silver;
+    margin-left: -400px;
+    margin-top: -20px;
+    opacity: 1;
+    position: absolute;
+    display: none;
+}
+
+.fileUpload .filelistlayer_popup:hover {
+	border: 1px solid gray;
+}
+
+.filelist .progressHolder {
+	display: block;
+	background-color: #252f38;
+	width:100px;
+	height:15px;
+	bottom: 0;
+	box-shadow: 0 0 2px #000;
+}
+
+.filelist .progress {
+	display: block;
+	background-color: #2586d0;
+	width:0;
+	height:15px;
+	box-shadow: 0 0 1px rgba(255, 255, 255, 0.4) inset;
+	-moz-transition: 0.25s;
+	-webkit-transition: 0.25s;
+	-o-transition: 0.25s;
+	transition: 0.25s;
+}
+
+.fileUpload form input[type=file] {
+	cursor: pointer
+}
+
+.fileUpload .attach_add{
+	float: left;
+	width: 58px;
+	height: 20px;
+	line-height: 22px;
+	padding: 0px;
+	padding-left: 22px;
+	overflow: hidden;
+	margin-left: 5px;
+	font-weight: normal;
+	background: url("./images/add_attachment.gif") top left no-repeat;
+	text-decoration : none;
+}
+
+.fileUpload .attach_add a:link {
+}
+.fileUpload .attach_add a:hover {
+	background: url("./images/add_attachment.gif") no-repeat left 20px;
+}
+.fileUpload .attach_add a:active {
+	background: url("./images/add_attachment.gif") top left left 40px;
+}
+
+.fileUpload .addfile {
+	float: left;
+	width: 100px;
+	height: 16px;
+}
+.fileUpload .file_put {
+  filter: Alpha(Opacity=0);
+  opacity:0;
+  z-index: 999;
+  margin-left: 18px;
+  width: 30px;
+  height: 16px;
+  float: left;
+  position: absolute;
+  overflow: hidden;
+}
+/* IE7 Hack */
+.fileUpload *:first-child+html .file_put {
+	filter: Alpha(Opacity=0);
+  opacity:0;
+  z-index: 999;
+  margin-left: 2px;
+  width: 30px;
+  height: 16px;
+  float: left;
+  background: #00F;
+  position: absolute;
+  overflow: hidden;
+}
+.fileUpload .filetag {
+  width: 80px;
+  height: 25px;
+  left: 5px;
+  top: 5px;
+  background: #F00;
+  cursor: pointer;
+}
+.fileUpload .add_filebg {
+	background: #DDD;
+	float: left;
+	height: 22px;
+	width: 100%;
+	padding-top: 5px;
+	padding-bottom: 3px;
+}
+.fileUpload .add_filebg .filebutton {
+	background: url("./images/add_attachment.gif") top left left 40px
+	padding:0 0 0 20px;
+	font: 12px/16px Dotum, Vrinda;
+	text-decoration: none;
+	width: 30px;
+	float: left;
+}
+/* for webkit */
+::-webkit-file-upload-button { cursor:pointer; }

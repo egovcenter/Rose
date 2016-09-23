@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Signer">
+
+	<typeAlias  alias="SignerVO" type="egovframework.com.uss.ion.apv.service.SignerVO"/>
+
+	<resultMap id="SignerDetail" class="egovframework.com.uss.ion.apv.service.SignerVO">
+		<result property="signerID" 			column="SNGR_ID" 			columnIndex="1" />
+		<result property="docID" 				column="DOC_ID" 			columnIndex="2" />
+		<result property="signSeq" 				column="SNGR_SEQ" 			columnIndex="3" />
+		<result property="userID" 				column="SNGR_USER_ID" 		columnIndex="4" />
+		<result property="signerName" 			column="SNGR_USER_NM" 		columnIndex="5" />
+		<result property="signerPositionName" 	column="SNGR_POSI_NM" 		columnIndex="6" />
+		<result property="signerDutyName" 		column="SNGR_DUTY_NM" 		columnIndex="7" />
+		<result property="signerDeptID" 		column="SNGR_DEPT_ID" 		columnIndex="8" />
+		<result property="signerDeptName"		column="SNGR_DEPT_NM" 		columnIndex="9" />
+		<result property="signKind" 			column="SNGR_KIND" 			columnIndex="10" />
+		<result property="signState" 			column="SNGR_STATE" 		columnIndex="11" />
+		<result property="signDate" 			column="SNGR_DT" 			columnIndex="12" />
+		<result property="signSubUserFlag" 		column="SNGR_SUBUSER_F" 	columnIndex="13" />
+		<result property="signOrignUserID" 		column="SNGR_ORGUSER_ID" 	columnIndex="14" />
+		<result property="opinion" 				column="SNGR_OPN" 			columnIndex="15" />
+	</resultMap>
+	
+	<select id="SignerDAO.selectApprovalSigners" parameterClass="SignerVO" resultMap="SignerDetail">
+		<![CDATA[
+			SELECT
+				si.SNGR_ID, 		si.DOC_ID, 			si.SNGR_SEQ, 		si.SNGR_USER_ID, 
+				si.SNGR_USER_NM,	si.SNGR_POSI_NM,	si.SNGR_DUTY_NM, 	si.SNGR_DEPT_ID, 
+				si.SNGR_DEPT_NM,	si.SNGR_KIND, 		si.SNGR_STATE, 		si.SNGR_DT, 
+				si.SNGR_SUBUSER_F, 	si.SNGR_ORGUSER_ID,	si.SNGR_OPN
+			FROM SIGNER_INFO si
+			WHERE si.DOC_ID = #docID#
+			ORDER BY si.SNGR_SEQ desc
+		]]>
+	</select>
+	<insert id="SignerDAO.insertApprovalSigner">
+		<![CDATA[
+			INSERT INTO SIGNER_INFO 
+				( SNGR_ID			, 	
+				  DOC_ID			, 			
+				  SNGR_SEQ			, 		
+				  SNGR_USER_ID		, 
+				  SNGR_USER_NM		,	
+				  SNGR_POSI_NM		,	
+				  SNGR_DUTY_NM		, 	
+				  SNGR_DEPT_ID		, 
+				  SNGR_DEPT_NM		,
+				  SNGR_KIND			, 		
+				  SNGR_STATE		, 		
+				  SNGR_DT			, 
+			  	  SNGR_SUBUSER_F	, 	
+				  SNGR_ORGUSER_ID	,
+				  SNGR_OPN			)
+		 	VALUES ( 
+		 		  #signerID#		,
+		 		  #docID#			,
+		 		  #signSeq#			,
+		 		  #userID#			,
+		 		  #signerName#		,
+		 		  #signerPositionName#,
+		 		  #signerDutyName#	,
+		 		  #signerDeptID#	,
+		 		  #signerDeptName#	,
+		 		  #signKind#		,
+		 		  #signState#		,
+		 		  #signDate#		,
+		 		  #signSubUserFlag#	,
+		 		  #signOrignUserID#	,
+		 		  #opinion#			)
+		]]>
+	</insert>
+	<update id="SignerDAO.updateApprovalSigner" parameterClass="SignerVO">
+		<![CDATA[
+			UPDATE 
+				SIGNER_INFO 
+			SET
+				DOC_ID		 	= #docID#,
+				SNGR_SEQ 	 	= #signSeq#, 
+				SNGR_USER_ID 	= #userID#, 
+				SNGR_USER_NM 	= #signerName#, 
+				SNGR_POSI_NM 	= #signerPositionName#,
+				SNGR_DUTY_NM 	= #signerDutyName#, 
+				SNGR_DEPT_ID 	= #signerDeptID#, 
+				SNGR_DEPT_NM 	= #signerDeptName#,
+				SNGR_KIND 	 	= #signKind#, 
+				SNGR_STATE 	 	= #signState#, 
+				SNGR_DT 	 	= #signDate#, 
+				SNGR_SUBUSER_F  = #signSubUserFlag#, 
+				SNGR_ORGUSER_ID = #signOrignUserID#, 
+				SNGR_OPN 		= #opinion#
+			 WHERE
+			 	SNGR_ID 		= #signerID#
+		]]>
+	</update>	
+</sqlMap>

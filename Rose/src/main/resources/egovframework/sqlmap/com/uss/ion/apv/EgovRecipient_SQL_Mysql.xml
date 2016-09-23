@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Recipient">
+
+	<typeAlias  alias="RecipientVO" type="egovframework.com.uss.ion.apv.service.RecipientVO"/>
+
+	<resultMap id="RecipientInf" class="RecipientVO">
+		<result property="recpId" 			column="RECP_ID" 			columnIndex="1" />
+		<result property="docId" 			column="DOC_ID" 			columnIndex="2" />
+		<result property="recpSeq" 			column="RECP_SEQ" 			columnIndex="3" />
+		<result property="recpInnerFlag"	column="RECP_INNER_F" 		columnIndex="4" />
+		<result property="deptId" 			column="RECP_DEPT_ID" 		columnIndex="5" />
+		<result property="recpDeptNm" 		column="RECP_DEPT_NM" 		columnIndex="6" />
+		<result property="recpSendType" 	column="RECP_SEND_TYPE" 	columnIndex="7" />
+		<result property="recpSendDt" 		column="RECP_SEND_DT" 		columnIndex="8" />
+		<result property="recpSendUserId"	column="RECP_S_USER_ID" 	columnIndex="9" />
+		<result property="recpSendUserNm" 	column="RECP_S_USER_NM" 	columnIndex="10" />
+		<result property="recpArrivalDt" 	column="RECP_ARRV_DT" 		columnIndex="11" />
+		<result property="recpRecpDt" 		column="RECP_RECP_DT" 		columnIndex="12" />
+		<result property="recpRecpUserId" 	column="RECP_R_USER_ID" 	columnIndex="13" />
+		<result property="recpRecpUserNm" 	column="RECP_R_USER_NM" 	columnIndex="14" />
+		<result property="recpFinishDt" 	column="RECP_FINI_DT" 		columnIndex="15" />
+		<result property="recpFinishUserId" column="RECP_F_USER_ID" 	columnIndex="16" />
+		<result property="recpFinishUserNm" column="RECP_F_USER_NM" 	columnIndex="17" />
+		<result property="recpRemark" 		column="RECP_RMRK" 			columnIndex="18" />
+		<result property="recpDocType" 		column="RECP_DOC_TYPE" 		columnIndex="19" />
+		<result property="recpMethod" 		column="RECP_METHOD" 		columnIndex="20" />
+		<result property="recpPassDeptId" 	column="RECP_PASS_DEPT_ID" 	columnIndex="21" />		
+	</resultMap>
+	
+
+	<select id="RecipientDAO.selectRecipients" parameterClass="RecipientVO" resultMap="RecipientInf">
+		<![CDATA[
+			SELECT
+				rc.RECP_ID, 			rc.DOC_ID,			rc.RECP_SEQ,			rc.RECP_INNER_F,			rc.RECP_DEPT_ID,
+				rc.RECP_DEPT_NM,		rc.RECP_SEND_TYPE,	rc.RECP_SEND_DT,		rc.RECP_S_USER_ID,			rc.RECP_S_USER_NM,
+				rc.RECP_ARRV_DT,		rc.RECP_RECP_DT,	rc.RECP_R_USER_ID,		rc.RECP_R_USER_NM,			rc.RECP_FINI_DT,
+				rc.RECP_F_USER_ID,		rc.RECP_F_USER_NM,	rc.RECP_RMRK,			rc.RECP_DOC_TYPE,			rc.RECP_METHOD,
+				rc.RECP_PASS_DEPT_ID
+			FROM 
+				RECIPIENT_INFO rc
+			WHERE 
+				DOC_ID = #docId#
+		]]>
+	</select>
+	
+	<select id="RecipientDAO.selectRecipient" parameterClass="RecipientVO" resultMap="RecipientInf">
+		<![CDATA[
+			SELECT
+				rc.RECP_ID, 			rc.DOC_ID,			rc.RECP_SEQ,			rc.RECP_INNER_F,			rc.RECP_DEPT_ID,
+				rc.RECP_DEPT_NM,		rc.RECP_SEND_TYPE,	rc.RECP_SEND_DT,		rc.RECP_S_USER_ID,			rc.RECP_S_USER_NM,
+				rc.RECP_ARRV_DT,		rc.RECP_RECP_DT,	rc.RECP_R_USER_ID,		rc.RECP_R_USER_NM,			rc.RECP_FINI_DT,
+				rc.RECP_F_USER_ID,		rc.RECP_F_USER_NM,	rc.RECP_RMRK,			rc.RECP_DOC_TYPE,			rc.RECP_METHOD,
+				rc.RECP_PASS_DEPT_ID
+			FROM
+				RECIPIENT_INFO rc
+			WHERE
+				rc.DOC_ID = #docId# 
+				AND rc.RECP_DEPT_ID = #deptId#
+		]]>
+	</select>
+
+	<insert id="RecipientDAO.insertRecipient" parameterClass="RecipientVO">
+		<![CDATA[
+			INSERT INTO RECIPIENT_INFO
+				(RECP_ID,				DOC_ID,				RECP_SEQ,				RECP_INNER_F,				RECP_DEPT_ID,
+				 RECP_DEPT_NM,			RECP_SEND_TYPE,		RECP_SEND_DT,			RECP_S_USER_ID,				RECP_S_USER_NM,
+				 RECP_ARRV_DT,			RECP_RECP_DT,		RECP_R_USER_ID,			RECP_R_USER_NM,				RECP_FINI_DT,
+				 RECP_F_USER_ID,		RECP_F_USER_NM,		RECP_RMRK,				RECP_DOC_TYPE,				RECP_METHOD,
+				 RECP_PASS_DEPT_ID)
+			VALUES
+				(#recpId#,				#docId#,			#recpSeq#,				#recpInnerFlag#,			#deptId#,
+				 #recpDeptNm#,			#recpSendType#,		#recpSendDt#,			#recpSendUserId#,			#recpSendUserNm#,
+				 #recpArrivalDt#,		#recpRecpDt#,		#recpRecpUserId#,		#recpRecpUserNm#,			#recpFinishDt#,
+				 #recpFinishUserId#,	#recpFinishUserNm#,	#recpRemark#,			#recpDocType#,				#recpMethod#,
+				 #recpPassDeptId#)				
+		]]>
+	</insert>
+	
+	<update id="RecipientDAO.updateRecipient" parameterClass="RecipientVO">
+		<![CDATA[
+			UPDATE RECIPIENT_INFO
+			SET
+				DOC_ID = #docId#,
+				RECP_SEQ = #recpSeq#,
+				RECP_INNER_F = #recpInnerFlag#,
+				RECP_DEPT_ID = #deptId#,
+				RECP_DEPT_NM = #recpDeptNm#,
+				RECP_SEND_TYPE = #recpSendType#,
+				RECP_SEND_DT = #recpSendDt#,
+				RECP_S_USER_ID = #recpSendUserId#,
+				RECP_S_USER_NM = #recpSendUserNm#,
+				RECP_ARRV_DT = #recpArrivalDt#,
+				RECP_RECP_DT = #recpRecpDt#,
+				RECP_R_USER_ID = #recpRecpUserId#,
+				RECP_R_USER_NM = #recpRecpUserNm#,
+				RECP_FINI_DT = #recpFinishDt#,
+				RECP_F_USER_ID = #recpFinishUserId#,
+				RECP_F_USER_NM = #recpFinishUserNm#,
+				RECP_RMRK = #recpRemark#,
+				RECP_DOC_TYPE = #recpDocType#,
+				RECP_METHOD = #recpMethod#,
+				RECP_PASS_DEPT_ID = #recpPassDeptId#
+			WHERE
+				RECP_ID = #recpId#
+		]]>
+	</update>
+
+
+	<update id="RecipientDAO.updateRecipientByIdList" parameterClass="map">
+			UPDATE RECIPIENT_INFO
+			SET
+				<iterate property="recpList" open="" close="" conjunction="">
+					DOC_ID = #recpList[].docId#,
+					RECP_SEQ = #recpList[].recpSeq#,
+					RECP_INNER_F = #recpList[].recpInnerFlag#,
+					RECP_DEPT_ID = #recpList[].deptId#,
+					RECP_DEPT_NM = #recpList[].recpDeptNm#,
+					RECP_SEND_TYPE = #recpList[].recpSendType#,
+					RECP_SEND_DT = #recpList[].recpSendDt#,
+					RECP_S_USER_ID = #recpList[].recpSendUserId#,
+					RECP_S_USER_NM = #recpList[].recpSendUserNm#,
+					RECP_ARRV_DT = #recpList[].recpArrivalDt#,
+					RECP_RECP_DT = #recpList[].recpRecpDt#,
+					RECP_R_USER_ID = #recpList[].recpRecpUserId#,
+					RECP_R_USER_NM = #recpList[].recpRecpUserNm#,
+					RECP_FINI_DT = #recpList[].recpFinishDt#,
+					RECP_F_USER_ID = #recpList[].recpFinishUserId#,
+					RECP_F_USER_NM = #recpList[].recpFinishUserNm#,
+					RECP_RMRK = #recpList[].recpRemark#,
+					RECP_DOC_TYPE = #recpList[].recpDocType#,
+					RECP_METHOD = #recpList[].recpMethod#,
+					RECP_PASS_DEPT_ID = #recpList[].recpPassDeptId#
+				</iterate>
+			WHERE
+				RECP_ID =
+				<iterate property="recpList" open="" close="" conjunction="">
+					#recpList[].recpId#
+				</iterate>
+	</update>
+	
+	<delete id="RecipientDAO.deleteRecipient" parameterClass="RecipientVO">
+		<![CDATA[
+			DELETE FROM RECIPIENT_INFO
+			WHERE
+				RECP_ID = #recpId#
+		]]>
+	</delete>
+</sqlMap>

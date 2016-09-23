@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="FormDAO">
+	<typeAlias  alias="FormVO" type="egovframework.com.uss.ion.apm.service.FormVO"/>
+	<typeAlias  alias="DeptVO" type="egovframework.com.uss.omt.service.DeptVO"/>
+	
+	<resultMap id="FormInfo"  class="egovframework.com.uss.ion.apm.service.FormVO">
+		<result property="formId" 			column="FORM_ID" 		columnIndex="1" />
+		<result property="orgId" 			column="ORGNZT_ID"		columnIndex="2" />
+		<result property="formName"			column="FORM_NM"		columnIndex="3" />
+		<result property="formVersion"		column="FORM_VER"		columnIndex="4" />
+		<result property="formRemark"		column="FORM_RMRK"		columnIndex="5" />
+		<result property="formUseF"			column="FORM_USE_F"		columnIndex="6" />
+		<result property="formType"			column="FORM_TYPE"		columnIndex="7" />
+		<result property="orgNm"			column="ORGNZT_NM"		columnIndex="8" />
+	</resultMap>
+	
+	<insert id="FormDAO.insertForm" parameterClass="FormVO">
+		<![CDATA[
+			INSERT INTO FORM_MST 
+				(FORM_ID, ORGNZT_ID, FORM_NM, FORM_VER, FORM_RMRK, FORM_USE_F, FORM_TYPE) 
+			VALUES
+				(#formId#, #orgId#, #formName#, #formVersion#, #formRemark#, #formUseF#, #formType#)
+		]]>
+	</insert>
+
+	<update id="FormDAO.updateForm" parameterClass="FormVO">
+		<![CDATA[
+			UPDATE FORM_MST 
+			SET 
+				ORGNZT_ID	= #orgId#,
+				FORM_NM		= #formName#,
+				FORM_VER	= #formVersion#,
+				FORM_RMRK	= #formRemark#,
+				FORM_USE_F	= #formUseF#,
+				FORM_TYPE	= #formType#
+			WHERE
+				FORM_ID = #formId# 
+		]]>
+	</update>
+
+	<delete id="FormDAO.deleteForm" parameterClass="FormVO">
+		<![CDATA[
+			DELETE FROM FORM_MST
+			WHERE FORM_ID = #formId#
+		]]>
+	</delete>
+
+	<select id="FormDAO.selectForm" parameterClass="FormVO" resultMap="FormInfo">
+		<![CDATA[
+			SELECT 
+				f.FORM_ID, f.ORGNZT_ID, d.ORGNZT_NM, f.FORM_NM, f.FORM_VER, f.FORM_RMRK, f.FORM_USE_F, f.FORM_TYPE
+			FROM 
+				FORM_MST f LEFT OUTER JOIN COMTNORGNZTINFO d
+				ON f.ORGNZT_ID = d.ORGNZT_ID
+			WHERE 
+				f.FORM_ID = #formId#
+		]]>
+	</select>
+
+	<select id="FormDAO.selectFormCnt" parameterClass="FormVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*)
+			FROM 
+				FORM_MST f LEFT OUTER JOIN COMTNORGNZTINFO d
+				ON f.ORGNZT_ID = d.ORGNZT_ID
+			WHERE 
+				f.FORM_ID = #formId#
+		]]>		
+	</select>
+	
+	<select id="FormDAO.selectForms" parameterClass="FormVO" resultMap="FormInfo">
+		<![CDATA[
+			SELECT 
+				f.FORM_ID, f.ORGNZT_ID, f.FORM_NM, f.FORM_VER, f.FORM_RMRK, f.FORM_USE_F, f.FORM_TYPE, d.ORGNZT_NM
+			FROM 
+				FORM_MST f 		LEFT OUTER JOIN 		COMTNORGNZTINFO d 
+				on f.ORGNZT_ID = d.ORGNZT_ID 
+			WHERE 
+				f.ORGNZT_ID in (SELECT  
+									GET_DEPT_TREE(ORGNZT_ID) AS dept_id 
+					      		FROM
+					      			(SELECT @start_with := #orgId#, 
+							       			@orgnzt_id := @start_with, 
+							       			@level := 0) vars, COMTNORGNZTINFO 
+					      		WHERE   
+					      			@orgnzt_id IS NOT NULL) 
+				or f.ORGNZT_ID = #orgId# 
+		]]>
+
+		<isEqual property="orderColumn" compareValue="1">
+				ORDER BY ORGNZT_ID	
+		</isEqual>
+		
+		<isEqual property="orderColumn" compareValue="2">
+			 	ORDER BY FORM_NM 	
+		</isEqual>
+		
+		<isEqual property="orderColumn" compareValue="3">
+				ORDER BY FORM_VER 	
+		</isEqual>
+		
+		<isEqual property="orderColumn" compareValue="4">
+				ORDER BY FORM_RMRK 	
+		</isEqual>
+		
+		
+		<isEqual property="orderMethod" compareValue="asc">
+				asc
+		</isEqual>
+		
+		<isEqual property="orderMethod" compareValue="desc">
+				desc
+		</isEqual>	
+	</select>
+	
+	<select id ="FormDAO.selectDraftFormList" parameterClass="DeptVO" resultMap="FormInfo">
+		<![CDATA[
+			SELECT 
+				f.FORM_ID, f.ORGNZT_ID, d.ORGNZT_NM, f.FORM_NM, f.FORM_VER, f.FORM_RMRK, f.FORM_USE_F, f.FORM_TYPE
+			FROM
+				FORM_MST f LEFT OUTER JOIN COMTNORGNZTINFO d ON f.ORGNZT_ID = d.ORGNZT_ID
+			WHERE
+				f.ORGNZT_ID in ( #deptId#, #baseOrgnztId# )
+				AND FORM_USE_F ='1'
+				AND FORM_TYPE in (1,2)
+		]]>
+	</select>
+
+	<select id ="FormDAO.selectRegisterFormList" parameterClass="DeptVO" resultMap="FormInfo">
+		<![CDATA[
+			SELECT
+				f.FORM_ID, f.ORGNZT_ID, d.ORGNZT_NM, f.FORM_NM, f.FORM_VER, f.FORM_RMRK, f.FORM_USE_F, f.FORM_TYPE
+			FROM
+				FORM_MST f LEFT OUTER JOIN COMTNORGNZTINFO d ON f.ORGNZT_ID = d.ORGNZT_ID
+			WHERE
+				f.ORGNZT_ID in ( #deptId#, #baseOrgnztId# )
+				AND FORM_USE_F ='1'
+				AND FORM_TYPE in (3)
+		]]>
+	</select>
+	
+	<select id ="FormDAO.selectListFormCnt" parameterClass="FormVO" resultClass="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*) 
+			FROM 
+				FORM_MST f LEFT OUTER JOIN COMTNORGNZTINFO d 
+				on f.ORGNZT_ID = d.ORGNZT_ID
+			WHERE 
+				f.ORGNZT_ID in (SELECT  GET_DEPT_TREE(orgnzt_id) AS orgnzt_id 
+					      		FROM    (SELECT  @start_with := #orgId#, @orgnzt_id := @start_with, @level := 0) vars, COMTNORGNZTINFO 
+					      		WHERE   @orgnzt_id IS NOT NULL ) 
+				or f.ORGNZT_ID = #orgId#
+		]]>
+	</select>
+</sqlMap>

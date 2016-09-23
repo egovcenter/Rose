@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opinion">
+
+	<typeAlias  alias="OpinionVO" type="egovframework.com.uss.ion.apv.service.OpinionVO"/>
+
+	<resultMap id="OpinionInf" class="OpinionVO">
+
+	</resultMap>
+	
+	<select id="OpinionDAO.selectOpinions" parameterClass="OpinionVO" resultMap="OpinionInf">
+		<![CDATA[
+
+		]]>
+	</select>
+	
+	<insert id="OpinionDAO.insertOpinion" parameterClass="OpinionVO">
+		<![CDATA[
+		]]>
+	</insert>
+</sqlMap>

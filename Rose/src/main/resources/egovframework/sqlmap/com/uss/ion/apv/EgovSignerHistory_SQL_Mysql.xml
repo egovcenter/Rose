@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SignerHistory">
+
+	<typeAlias  alias="SignerHistoryVO" type="egovframework.com.uss.ion.apv.service.SignerHistoryVO"/>
+
+	<resultMap id="SignerHistoryInf" class="egovframework.com.uss.ion.apv.service.SignerHistoryVO">
+		<result property="signerHistoryID" 				column="SNGR_H_ID" 				columnIndex="1" />
+		<result property="docID" 						column="DOC_ID" 				columnIndex="2" />
+		<result property="signerHistorySeq" 			column="SNGR_H_SEQ" 			columnIndex="3" />
+		<result property="signerHistoryUserID" 			column="SNGR_H_USER_ID" 		columnIndex="4" />
+		<result property="signerHistoryUserName" 		column="SNGR_H_USER_NM" 		columnIndex="5" />
+		<result property="signerHistoryPositionName" 	column="SNGR_H_POSI_NM" 		columnIndex="6" />
+		<result property="signerHistoryDutyName" 		column="SNGR_H_DUTY_NM" 		columnIndex="7" />
+		<result property="signerHistoryDeptID" 			column="SNGR_H_DEPT_ID" 		columnIndex="8" />
+		<result property="signerHistoryDeptName"		column="SNGR_H_DEPT_NM" 		columnIndex="9" />
+		<result property="signerHistoryKind" 			column="SNGR_H_KIND" 			columnIndex="10" />
+		<result property="signerHistoryState" 			column="SNGR_H_STATE" 			columnIndex="11" />
+		<result property="signerHistoryDate" 			column="SNGR_H_DT" 				columnIndex="12" />
+		<result property="signerOpinion" 				column="SNGR_OPN" 				columnIndex="13" />
+	</resultMap>
+	
+	<select id="SignerHistoryDAO.selectSignerHistorys" parameterClass="SignerHistoryVO" resultMap="SignerHistoryInf">
+		<![CDATA[
+			SELECT
+				 SNGR_H_ID,			DOC_ID,				SNGR_H_SEQ,			SNGR_H_USER_ID,			SNGR_H_USER_NM,
+				 SNGR_H_POSI_NM,	SNGR_H_DUTY_NM,		SNGR_H_DEPT_ID,		SNGR_H_DEPT_NM,			SNGR_H_KIND,
+				 SNGR_H_STATE,		SNGR_H_DT,			SNGR_OPN
+			FROM
+				SIGNHISTORY_INFO
+			WHERE
+				DOC_ID = #docID#
+		]]>
+	</select>
+	
+	<insert id="SignerHistoryDAO.insertSignerHistory" parameterClass="SignerHistoryVO">
+		<![CDATA[
+			INSERT SIGNHISTORY_INFO
+				(SNGR_H_ID,				DOC_ID,				SNGR_H_SEQ,				SNGR_H_USER_ID,			SNGR_H_USER_NM,
+				 SNGR_H_POSI_NM,		SNGR_H_DUTY_NM,		SNGR_H_DEPT_ID,			SNGR_H_DEPT_NM,			SNGR_H_KIND,
+				 SNGR_H_STATE,			SNGR_H_DT, 			SNGR_OPN)
+			VALUES
+				(#signerHistoryID#,		#docID#,			#signerHistorySeq#, 	#signerHistoryUserID#,	#signerHistoryUserName#,
+				 #signerHistoryPositionName#,	#signerHistoryDutyName#,	#signerHistoryDeptID#,	#signerHistoryDeptName#,	#signerHistoryKind#,
+				 #signerHistoryState#,	#signerHistoryDate#,	#signerOpinion#) 			
+		]]>
+	</insert>
+	
+	<delete id="SignerHistoryDAO.deleteSignerHistory" parameterClass="SignerHistoryVO">
+		<![CDATA[
+			DELETE FROM SIGNHISTORY_INFO
+			WHERE
+				SNGR_H_ID = #signerHistoryID#
+		]]>
+	</delete>
+</sqlMap>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="LabelDAO">
+	<typeAlias  alias="LabelVO" type="egovframework.com.uss.ion.apm.service.LabelVO"/>
+
+	<resultMap id="LabelInfo"  class="egovframework.com.uss.ion.apm.service.LabelVO">
+		<result property="labelId" 				column="LBEL_ID" 			columnIndex="1" />
+		<result property="labelNm"				column="LBEL_NM"			columnIndex="2" />
+		<result property="deptId" 				column="ORGNZT_ID"			columnIndex="3" />
+		<result property="labelParentId" 		column="LBEL_PAR_ID"		columnIndex="4" />
+		<result property="labelSeq" 			column="LBEL_SEQ"			columnIndex="5" />
+		<result property="labelLevel" 			column="LEV"				columnIndex="6" />
+	</resultMap>
+
+	<select id="LabelDAO.selectLableTreeOfDeptId" parameterClass="LabelVO" resultMap="LabelInfo">
+		<![CDATA[
+			SELECT dm.lbel_id AS LBEL_ID, dm.lbel_nm AS LBEL_NM, dm.orgnzt_id AS ORGNZT_ID, dm.lbel_par_id as LBEL_PAR_ID, dm.lbel_seq as LBEL_SEQ, CAST(dm2.lev AS CHAR) AS LEV
+			FROM (
+					SELECT  GET_LABEL_TREE(lbel_id) AS lbel_id, @level as lev 
+					FROM    ( 
+								SELECT  @start_with := (SELECT LBEL_ID FROM LABEL_MST WHERE ORGNZT_ID=#deptId# and LBEL_NM='TOP LABEL'), 
+										@lbel_id := @start_with, 
+										@level := 0 
+							) vars, LABEL_MST
+					WHERE   @lbel_id IS NOT NULL and LABEL_MST.orgnzt_id = #deptId#
+				) dm2 
+			JOIN    LABEL_MST dm
+			ON      dm.lbel_id = dm2.lbel_id 
+     	]]>
+	</select>
+
+	<select id="LabelDAO.selectRootLabel" parameterClass="LabelVO" resultMap="LabelInfo">
+		<![CDATA[
+			SELECT lbel_id AS LBEL_ID, lbel_nm AS LBEL_NM, orgnzt_id AS ORGNZT_ID, lbel_par_id as LBEL_PAR_ID, lbel_seq as LBEL_SEQ, 0 AS LEV
+			FROM LABEL_MST
+			WHERE ORGNZT_ID=#deptId# AND LBEL_NM='TOP LABEL'
+		]]>
+	</select>
+	
+	<select id="LabelDAO.selectLabel" parameterClass="LabelVO" resultMap="LabelInfo">
+		<![CDATA[
+			SELECT lbel_id AS LBEL_ID, lbel_nm AS LBEL_NM, orgnzt_id AS ORGNZT_ID, lbel_par_id as LBEL_PAR_ID, lbel_seq as LBEL_SEQ, 0 AS LEV
+			FROM LABEL_MST
+			WHERE LBEL_ID=#labelId#
+		]]>
+	</select>
+	
+	<insert id="LabelDAO.insertLabel" parameterClass="LabelVO">
+		<![CDATA[
+			INSERT INTO LABEL_MST
+				(LBEL_ID, LBEL_NM, LBEL_PAR_ID, LBEL_SEQ, ORGNZT_ID)
+			VALUES
+				(#labelId#, #labelNm#, #labelParentId#, #labelSeq#, #deptId#)
+		]]>
+	</insert>
+
+	<update id="LabelDAO.updateLabel" parameterClass="LabelVO">
+		<![CDATA[
+			UPDATE LABEL_MST 
+			SET
+				LBEL_NM = #labelNm#,
+				LBEL_PAR_ID = #labelParentId#, 
+				LBEL_SEQ = #labelSeq#, 
+				ORGNZT_ID = #deptId#
+			WHERE LBEL_ID = #labelId#
+		]]>
+	</update>
+
+	<delete id="LabelDAO.deleteLabel" parameterClass="LabelVO">
+		<![CDATA[
+			DELETE FROM LABEL_MST
+			WHERE LBEL_ID = #labelId# 
+		]]>
+	</delete>
+	
+	<update id="LabelDAO.updateSeq" parameterClass="LabelVO">
+		<![CDATA[
+ 			UPDATE LABEL_MST
+ 			SET LBEL_SEQ = #labelSeq# + 1
+ 			WHERE LBEL_PAR_ID = #labelParentId#  AND LBEL_SEQ > #labelSeq#
+ 		]]>
+	</update>
+
+	<select id="LabelDAO.selectMaxSeq" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		<![CDATA[
+ 			SELECT IFNULL(MAX(LBEL_SEQ),0)+1
+ 			FROM LABEL_MST
+ 			WHERE LBEL_PAR_ID = #labelParentId#
+ 		]]> 
+	</select>
+</sqlMap>

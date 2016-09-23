@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ApprovalAuth">
+	<typeAlias  alias="UserApprovalAuthVO" type="egovframework.com.uss.ion.apv.service.UserApprovalAuthVO"/>
+	<typeAlias  alias="DeptApprovalAuthVO" type="egovframework.com.uss.ion.apv.service.DeptApprovalAuthVO"/>
+
+	<resultMap id="DeptAuth" class="DeptApprovalAuthVO">
+		<result property="deptId" 				column="ORGNZT_ID" 			columnIndex="1" />
+		<result property="inboxAuth" 			column="DEPT_RBOX_F"		columnIndex="2" />
+		<result property="outboxAuth" 			column="DEPT_BOX_F" 		columnIndex="3" />
+	</resultMap>
+		
+	<select id="ApprovalDAO.selectUserApprovalRecvAuth" parameterClass="UserApprovalAuthVO" resultClass="java.lang.String">
+		<![CDATA[
+			SELECT 
+				CASE WHEN dg.DEPT_RBOX_USER_ID = ug.ESNTL_ID then '1' else '0' end R_AUTH
+			FROM COMTNEMPLYRINFO ug, COMTNORGNZTINFO dg
+			WHERE ug.ORGNZT_ID = dg.ORGNZT_ID 
+				AND ug.ESNTL_ID = #userId#
+		]]>
+	</select>
+
+	<select id="ApprovalDAO.selectUserApprovalSendAuth" parameterClass="UserApprovalAuthVO" resultClass="java.lang.String">
+		<![CDATA[
+			SELECT 
+				CASE WHEN dg.DEPT_SBOX_USER_ID = ug.ESNTL_ID then '1' else '0' end S_AUTH
+			FROM COMTNEMPLYRINFO ug, COMTNORGNZTINFO dg
+			WHERE ug.ORGNZT_ID = dg.ORGNZT_ID 
+				AND ug.ESNTL_ID = #userId#
+		]]>
+	</select>
+	
+	<select id="ApprovalDAO.selectDeptApprovalAuth" parameterClass="DeptApprovalAuthVO" resultMap="DeptAuth">
+		<![CDATA[
+			SELECT
+				 ORGNZT_ID, DEPT_RBOX_F, DEPT_BOX_F
+			FROM COMTNORGNZTINFO
+			WHERE ORGNZT_ID = #deptId# 
+		]]>
+	</select>
+</sqlMap>

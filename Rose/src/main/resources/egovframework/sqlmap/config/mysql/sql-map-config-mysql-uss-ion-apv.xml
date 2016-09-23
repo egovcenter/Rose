@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovApprovalDoc_SQL_Mysql.xml" />
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovApprovalAuth_SQL_Mysql.xml" />
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovFileAttach_SQL_Mysql.xml" />
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovSigner_SQL_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovRecipient_SQL_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovSignerHistory_SQL_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovOpinion_SQL_Mysql.xml"/>
+</sqlMapConfig>
