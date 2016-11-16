@@ -9,5 +9,6 @@
 	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovSigner_SQL_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovRecipient_SQL_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovSignerHistory_SQL_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovSignerChangeHistory_SQL_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/com/uss/ion/apv/EgovOpinion_SQL_Mysql.xml"/>
 </sqlMapConfig>

@@ -13,6 +13,16 @@ public interface Doc {
 	 * 문서ID
 	 */
 	public abstract void setDocID(String docID);
+	
+	/**
+	 * 문서Version
+	 */
+	public abstract int getDocVersion();
+	
+	/**
+	 * 문서Version
+	 */
+	public abstract void setDocVersion(int docVersion);
 
 	/**
 	 * 분류태그ID

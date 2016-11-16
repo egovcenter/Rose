@@ -1,9 +1,8 @@
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html; charset=utf-8" %>
 <%@ page import="java.util.*"%>
-<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<%@ taglib prefix="validator" uri="http://www.springmodules.org/tags/commons-validator" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ include file="/WEB-INF/jsp/egovframework/com/cmm/EgovCommon.jsp"%>
 <html lang="en">
 <!doctype html>
@@ -18,19 +17,15 @@
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/json2.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/drafting.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/approval.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.hs.localization.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.fileUpload/fileUpload.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.form.js"'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/popup.js"'/>"></script>
-<script type="text/javascript" src="<c:url value='/js/egovframework/com/cmm/fms/EgovMultiFile.js'/>" ></script>
-<script type="text/javascript" src="<c:url value="/validator.do"/>"></script>
-<validator:javascript formName="attach" staticJavascript="false" xhtml="true" cdata="false"/>
 <script>
 var APPROVAL_CONTEXT = "${pageContext.servletContext.contextPath}";
 var userId = "${user.uniqId}";
 var userName = "${user.emplyrNm}";
 var docId = "${doc.docID}";
-var formId = "${doc.formId}";
+var formId = "${formId}";
+var orgdocId = "${orgDoc.docID}";
 function toggle_content(obj, ID){
 	$('.tab_box').each(function(index){
 		if(ID == "approval_head"){
@@ -41,11 +36,10 @@ function toggle_content(obj, ID){
 			$('.approval_document').addClass('on');
 		}
 	});
-
 	$('.tabContent_rapper').each(function(index){
 		if($(this).attr('id') == ID){
 			if(ID == 'approval_document'){
-				applySignTable();
+				applyIncomingSignTable();
 			}
 			$(this).show();
 		}else{
@@ -53,13 +47,10 @@ function toggle_content(obj, ID){
 		}
 	});
 }
-function attachDelete() {
-	$('input:checkbox[name="attachId"]').each(function(){
-		if($(this).is(":checked") == true){
-			var deleteTr = $(this).parent().parent();
-			deleteTr.remove();
-		}
-	});
+function doIncoming() {
+	var obj = getPreAttachedList();
+	$("#preAttachedFileList").val(JSON.stringify(obj));
+	addOpinion('redraftForIncoming');
 }
 function getPreAttachedList() {
     var idList = new Array();
@@ -71,46 +62,9 @@ function getPreAttachedList() {
     });
     return idList;
 }
-function makeFileAttachment(){
-	var maxFileNum = $("#posblAtchFileNumber").val();
-	if(maxFileNum==null || maxFileNum==""){
-		maxFileNum = 3;
-	}
-	var multi_selector = new MultiSelector( document.getElementById( 'egovComFileList' ), maxFileNum, '${pageContext.request.contextPath}');
-	multi_selector.addElement( document.getElementById( 'egovComFileUploader' ) );
-}
-var signerKind = {
-	'SK00' : '<spring:message code="appvl.signerKind.SK00"/>',
-	'SK01' : '<spring:message code="appvl.signerKind.SK01"/>',
-	'SK02' : '<spring:message code="appvl.signerKind.SK02"/>',
-	'SK03' : '<spring:message code="appvl.signerKind.SK03"/>',
-	'SK04' : '<spring:message code="appvl.signerKind.SK04"/>'
-}
-var signerState = {
-	'SS00' : '<spring:message code="appvl.signerState.SS00"/>',
-	'SS01' : '<spring:message code="appvl.signerState.SS01"/>',
-	'SS02' : '<spring:message code="appvl.signerState.SS02"/>',
-	'SS03' : '<spring:message code="appvl.signerState.SS03"/>',
-	'SS09' : '<spring:message code="appvl.signerState.SS09"/>'
-}
-var sendType = {
-	'ST01' : '<spring:message code="appvl.recip.ST01"/>',
-	'ST02' : '<spring:message code="appvl.recip.ST02"/>',
-	'ST03' : '<spring:message code="appvl.recip.ST03"/>',
-	'ST04' : '<spring:message code="appvl.recip.ST04"/>',
-	'ST05' : '<spring:message code="appvl.recip.ST05"/>'
-};
-var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.signerList.noapprover"/>";
-var recpInnerFlag = {'1' : '<spring:message code="appvl.recip.label.recpInnerFlag.1"/>',
-		 			 '2' : '<spring:message code="appvl.recip.label.recpInnerFlag.2"/>'};
-		 			 
-function doRedraft() {
-	var obj = getPreAttachedList();
-	$("#preAttachedFileList").val(JSON.stringify(obj));
-	addOpinion('redraft');
-}
 function settingDocumentContent(){
-	var contentHtml = $("#editorContent").html();
+ 	var contentHtml = $("#editorContent").html();
+ 	document.getElementById("hiddenContent").value = contentHtml;
 	if(contentHtml != null){
 		$('div#editorContent').replaceWith('<iframe id="iframe_content" scrolling="yes"></iframe>');
 		settingIframe(contentHtml);
@@ -134,13 +88,39 @@ function settingIframe(newContent) {
 		autoResize("iframe_content");
 	}
 }
+function replaceAll(str, searchStr, replaceStr) {
+    return str.split(searchStr).join(replaceStr);
+}
 $(function(){
 	settingDocumentContent();
 });
+var signerKind = {
+		'SK00' : '<spring:message code="appvl.signerKind.SK00"/>',
+		'SK01' : '<spring:message code="appvl.signerKind.SK01"/>',
+		'SK02' : '<spring:message code="appvl.signerKind.SK02"/>',
+		'SK03' : '<spring:message code="appvl.signerKind.SK03"/>',
+		'SK04' : '<spring:message code="appvl.signerKind.SK04"/>'
+}
+var signerState = {
+	'SS00' : '<spring:message code="appvl.signerState.SS00"/>',
+	'SS01' : '<spring:message code="appvl.signerState.SS01"/>',
+	'SS02' : '<spring:message code="appvl.signerState.SS02"/>',
+	'SS03' : '<spring:message code="appvl.signerState.SS03"/>',
+	'SS09' : '<spring:message code="appvl.signerState.SS09"/>'
+}
+var sendType = {
+	'ST01' : '<spring:message code="appvl.recip.ST01"/>',
+	'ST02' : '<spring:message code="appvl.recip.ST02"/>',
+	'ST03' : '<spring:message code="appvl.recip.ST03"/>',
+	'ST04' : '<spring:message code="appvl.recip.ST04"/>',
+	'ST05' : '<spring:message code="appvl.recip.ST05"/>'
+};
+var appvl_draft_nolabel = "<spring:message code="appvl.draft.nolabel"/>";
+var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.signerList.noapprover"/>";
 </script>
 </head>
 
-<body onLoad="makeFileAttachment();">
+<body>
 <div class="wrap"> 
 	<!--  Top Menu Start --> 
 	<jsp:include page="/WEB-INF/jsp/egovframework/com/cmm/EgovTopMenu.jsp" flush="false">
@@ -152,16 +132,9 @@ $(function(){
 	<div class="Container"> 
 	<!-- Lnb -->
 	<jsp:include page="/WEB-INF/jsp/egovframework/com/uss/ion/cmm/EgovLeftMenu.jsp" flush="false">
-		<jsp:param value="draft" name="CommonButton"/>
+		<jsp:param value="register" name="CommonButton"/>
 		<jsp:param value="approval" name="CommonTitle"/>
 	</jsp:include>
-		<form:form commandName="attach" name="attach" method="post" id="attach" action="${pageContext.servletContext.contextPath}/redraft.do" enctype="multipart/form-data" >
-		<input type="hidden" id="fileAtchPosblAt" name="fileAtchPosblAt" value="" />
-		<input type="hidden" id="posblAtchFileNumber" name="posblAtchFileNumber" value="5" />
-		<input type="hidden" id="posblAtchFileSize" name="posblAtchFileSize" value="" />
-		<input type="hidden" id="preAttachedFileList" name="preAttachedFileList" value="" />
-		<input type="hidden" id="redraft" name="redraft" value="true" />
-		<input type="hidden" id="editFlag" name="editFlag" value="false" />
 		<!-- Content Start -->
 		<div class="Content"> 
 			<!-- Content box Start -->
@@ -173,9 +146,8 @@ $(function(){
 						<h1><spring:message code="appvl.document.title.label.redraft"/></h1>						
 					</div>					
 					<div class="but_line">
-						<input type="button" id="redraft_button" value='<spring:message code="appvl.sidemenu.button.draft"/>' class="but_navy mr05" onClick="javascript:doRedraft();"/>
-						<input type="button" value='<spring:message code="appvl.document.button.edit"/>' class="but_gray mr05" onClick="javascript:documentPopup('edit', '${doc.docVersion}');"/>
-						<input type="button" value='<spring:message code="common.button.cancel"/>' class="but_grayL" onClick="cancel();"/>
+						<input type="button" id="redraft_button" value='<spring:message code="appvl.sidemenu.button.draft"/>' class="but_navy mr05" onClick="javascript:doIncoming();"/>
+						<input type="button" value='<spring:message code="common.button.cancel"/>' class="but_grayL" onClick="history.back()"/>
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -201,7 +173,7 @@ $(function(){
 									<tbody>
 										<tr>
 											<th scope="row"><label for="label_1"><spring:message code="appvl.documet.label.title"/></label></th>
-											<td colspan="2"><div class="ui_input_text"><input type="text" name="draft_title" value="<c:out value="${doc.docTitle}"/>"/></div></td>
+											<td colspan="2"><div class="ui_input_text" style="border-bottom:1px solid #e1e1e1;"><c:out value="${doc.docTitle}"/></div></td>
 										</tr>
 										<tr>
 											<th scope="row"><label for="label_2"><spring:message code="appvl.documet.label.label"/></label></th>
@@ -215,14 +187,16 @@ $(function(){
 										<tr>
 											<th scope="row"><spring:message code="appvl.documet.label.security"/></th>
 											<td colspan="2">
-												<span class="radio_rapper"><input type="radio" value="99" name="doc_slvl" <c:if test="${doc.docSlvl eq '99'}">checked</c:if> /><label  for="label_3-1"><spring:message code="appvl.documet.label.security.open"/></label></span>
-												<span class="radio_rapper"><input type="radio" value="1" name="doc_slvl" <c:if test="${doc.docSlvl eq '1'}">checked</c:if> /><label  for="label_3-2"><spring:message code="appvl.documet.label.security.secret"/></label></span>
+												 <div class="ui_input_text" style="border-bottom:1px solid #e1e1e1;">
+													<c:if test="${doc.docSlvl eq '99'}"><label  for="label_3-1"><spring:message code="appvl.documet.label.security.open"/></label></c:if>
+													<c:if test="${doc.docSlvl eq '1'}"><label  for="label_3-2"><spring:message code="appvl.documet.label.security.secret"/></label></c:if>
+												</div>
 											</td>
 										</tr>
 										<tr>
 											<th scope="row"><spring:message code="appvl.documet.label.signerline"/> </th>
 											<td colspan="2">
-												<div class="float_right ui_btn_rapper"><a href="javascript:assignSignerLine4Redraft();" class="btn_color3"><spring:message code="appvl.document.button.assign"/></a></div>
+												<div class="float_right ui_btn_rapper"><a href="javascript:assignSignerLine()" class="btn_color3"><spring:message code="appvl.document.button.assign"/></a></div>
 											</td>
 										</tr>
 										<tr>
@@ -334,37 +308,13 @@ $(function(){
 													</tbody>
 												</table>
 											</td>
-										</tr>
+										</tr>											
 										<tr>
-											<th scope="row"><spring:message code="appvl.documet.label.attachment"/> </th>
-											<td colspan="2">
-									           <table width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
-												    <tr>
-												        <td><input name="file_1" id="egovComFileUploader" type="file" title="첨부파일입력"/></td>
-												    </tr>
-												    <tr>
-												        <td>
-												        	<div id="egovComFileList"></div>
-												        </td>
-												    </tr>
-									   	        </table>												
-											</td>
+											<th scope="row"><spring:message code="appvl.documet.label.attachment"/></th>
 										</tr>
 										<tr>
 											<th scope="row"></th>
 											<td colspan="2">
-												<c:if test="${not empty attachList}">
-														<div class="float_right ui_btn_rapper">
-															<!-- 20160404_SUJI.H <a href="#" class="btn_color3"><spring:message code="common.button.select"/></a> -->
-															<a href="javascript:attachDelete()" class="btn_color2"><spring:message code="common.button.delete"/></a>
-														</div>
-												</c:if>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"></th>
-											<td colspan="2">
-												<c:if test="${not empty attachList}">
 												<table summary="/No/Attochment/Title/Poster/Post Date/Expire date" class="board_type_height mb20" id="attach_list_table">
 													<caption class="blind"></caption>
 													<colgroup>
@@ -374,16 +324,20 @@ $(function(){
 													</colgroup>
 													<thead>
 														<tr>
-															<th scope="col" class="align_center"><img src="<c:out value="${pageContext.servletContext.contextPath}"/>/images/egovframework/com/uss/cmm/icon_check.png" alt="icon_check"></th>
+															<th scope="col" class="align_center"><img src="<c:url value='/images/egovframework/com/uss/cmm/icon_check.png'/>" alt="icon_check"></th>
 															<th scope="col" class=""><span><spring:message code="appvl.documet.label.attachment.table.filename"/></span></th>
 															<th scope="col" class=""><span><spring:message code="appvl.documet.label.attachment.table.filesize"/></span></th>
 														</tr>
 													</thead>					
 													<tbody>
+													<c:if test="${empty attachList}">
+														<tr><td colspan="3"><spring:message code="appvl.documet.label.attachment.noattach"/></td></tr>
+													</c:if>
+													<c:if test="${not empty attachList}">
 													<c:forEach var="attach" items="${attachList}">
 														<tr>
-															<td class="align_center"><input type="checkbox" value="<c:out value="${attach.attachID}"/>" name="attachId"/></td>
-															<td><a href="javascript:downloadFile('<c:out value="${pageContext.servletContext.contextPath}"/>/downloadAttach.do', '<c:out value="${attach.docID}"/>','<c:out value="${attach.attachID}"/>','<c:out value="${param.userId}"/>')"><c:out value="${attach.attachNm}"/></a></a></td>
+															<td class="align_center"><input type="checkbox" value="<c:out value="${attach.attachID}"/>" name="attachId" checked="checked" disabled="disabled"/></td>
+															<td><a href="javascript:downloadFile('<c:out value="${pageContext.servletContext.contextPath}"/>/downloadAttach.do', '<c:out value="${attach.docID}"/>','<c:out value="${attach.attachID}"/>','<c:out value="${user.uniqId}"/>')"><c:out value="${attach.attachNm}"/></a></td>
 															<td>
 																<c:choose>
 																	<c:when test="${attach.attachSize / 1024 < 1}">1 KB</c:when>
@@ -393,80 +347,11 @@ $(function(){
 															</td>
 														</tr>
 													</c:forEach>
-													</tbody>
-												</table>
-												</c:if>
-											</td>
-										</tr>
-										<c:if test="${doc.docType eq 'DT02'}">
-										<tr>
-											<th scope="row"><spring:message code="appvl.documet.label.recipient"/></th>
-											<td colspan="2">
-												<div class="float_right ui_btn_rapper">
-													<a href="javascript:assignRecipient()" class="btn_color3"><spring:message code="appvl.document.button.assign"/></a>
-												</div>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"></th>
-											<td colspan="2">
-												<table summary="/No/Attochment/Title/Poster/Post Date/Expire date" class="board_type_height mb20" id="recipient_list_table">
-													<caption class="blind"></caption>
-													<colgroup>
-														<col width="50px"/>
-														<col width="*"/>
-														<col width="80px"/>
-														<col width="150px"/>
-													</colgroup>
-													<thead>
-														<tr>
-															<th scope="col" class=""><span><spring:message code="appvl.assignrecpt.lable.selectedrecipient.table.no"/></span></th>
-															<th scope="col" class=""><span><spring:message code="appvl.assignrecpt.lable.selectedrecipient.table.departmentmda"/></span></th>
-															<th scope="col" class=""><span><spring:message code="appvl.assignrecpt.lable.selectedrecipient.table.type"/></span></th>
-															<th scope="col" class=""><span><spring:message code="appvl.assignrecpt.lable.selectedrecipient.table.method"/></span></th>
-														</tr>
-													</thead>					
-													<tbody>
-													<c:if test="${empty recipientList}">
-														<tr><td colspan="4"><spring:message code="appvl.documet.label.norecipient"/></td></tr>
 													</c:if>
-													<c:set var="recpSeq" value="0"/>
-													<c:forEach var="recipient" items="${recipientList}" varStatus="loop">
-														<tr>
-															<td>
-																<div class="recipient_recpseq"><c:out value="${recipient.recpSeq}"/></div>
-															</td>
-															<td>
-																<div class="recipient_deptname"><c:out value="${recipient.recpDeptNm}"/></div>
-															</td>
-															<td>
-																<c:choose>
-																	<c:when test="${recipient.recpInnerFlag eq '1'}"><div class="recipient.recpinnerflagtext"><spring:message code="appvl.assignrecpt.button.internal"/></div></c:when>
-																	<c:when test="${recipient.recpInnerFlag eq '2'}"><div class="recipient.recpinnerflagtext"><spring:message code="appvl.assignrecpt.button.external"/></div></c:when>
-																</c:choose>
-															</td>
-															<td>
-																<c:choose>
-																	<c:when test="${recipient.recpSendType eq 'ST01'}"><div class="recipient_recpsendtypetext"><spring:message code="appvl.recip.ST01"/></div></c:when>
-																	<c:when test="${recipient.recpSendType eq 'ST02'}"><div class="recipient_recpsendtypetext"><spring:message code="appvl.recip.ST02"/></div></c:when>
-																	<c:when test="${recipient.recpSendType eq 'ST03'}"><div class="recipient_recpsendtypetext"><spring:message code="appvl.recip.ST03"/></div></c:when>
-																	<c:when test="${recipient.recpSendType eq 'ST04'}"><div class="recipient_recpsendtypetext"><spring:message code="appvl.recip.ST04"/></div></c:when>
-																	<c:when test="${recipient.recpSendType eq 'ST05'}"><div class="recipient_recpsendtypetext"><spring:message code="appvl.recip.ST05"/></div></c:when>
-																	<c:otherwise><div class="recipient_recpsendtypetext"><spring:message code="appvl.recip.ST01"/></div></c:otherwise>
-																</c:choose>
-																<input class="recipient_recpsendtype"  name="recipient_recpsendtype"  type="hidden" value="<c:out value="${recipient.recpSendType}"/>">
-																<input class="recipient_recpinnerflag"  name="recipient_recpinnerflag" type="hidden" value="<c:out value="${recipient.recpInnerFlag}"/>">
-																<input class="recipient_recpid"  name="recipient_recpid"  type="hidden" value="<c:out value="${recipient.recpId}"/>">
-																<input class="recipient_deptid"  name="recipient_deptid"  type="hidden" value="<c:out value="${recipient.deptId}"/>">
-															</td>
-														</tr> 
-														<c:set var="recpSeq" value="${recipient.recpSeq}"/>
-													</c:forEach>
 													</tbody>
 												</table>
 											</td>
 										</tr>
-										</c:if>
 									</tbody>
 								</table>
 							</div>
@@ -477,9 +362,12 @@ $(function(){
 				<!-- approval_document Start-->
 				<div class="tabContent_rapper" id="approval_document" style="display: none">
 					<div class="table_rapper">
+						<form id="draft_form" name="draft_form" action="<c:out value="${pageContext.servletContext.contextPath}"/>/redraftForIncoming.do" method="post">
+						<input type="hidden" id="preAttachedFileList" name="preAttachedFileList" value="" />
 						<div class="print_rapper" id="draft_body">
 							<c:out value="${docBody}" escapeXml="false"/>
 						</div>
+						</form>
 					</div>			
 				</div>
 				<!-- approval_document End -->
@@ -487,15 +375,19 @@ $(function(){
 			<!-- Content box End -->
 		</div>
 		<!-- Content End --> 
-		</form:form>
 	</div>
 	<!-- Container End -->
 	<div id="div_popup" style="display: none"></div>
-	<form:form id="popupForm" name="popupForm" method="post" action="${pageContext.servletContext.contextPath}/documentEditor.do" target="">
+	<form action="" id="pageParam" name="pageParam" method="post">
+		<input type="hidden" id="docId" name="docId" value="">
+		<input type="hidden" id="orgdocId" name="orgdocId" value="">
+		<input type="hidden" id="hiddenContent" name="hiddenContent" value="">
+	</form>
+	<form id="popupForm" name="popupForm" method="post" action="${pageContext.servletContext.contextPath}/documentEditor.do" target="">
 		<input type="hidden" id="docId" name="docId" value="${doc.docID}" />
 		<input type="hidden" id="action" name="action" value="" />
 		<input type="hidden" id="docVersion" name="docVersion" value="" />
-	</form:form>
+	</form>
 </div>
 <!-- wrap End -->
 <%@ include file="/WEB-INF/jsp/egovframework/com/cmm/EgovCopyright.jsp" %>
@@ -510,7 +402,7 @@ $('.board_type_height th').click(function() {
 	} else {
 		$(this).removeClass('sort_up');
 		$(this).addClass('sort_down');
-    }
+	}
 });
 $( ".Status" ).click(function() {
   $( ".statusSlide_rapper" ).slideDown( 500, function() {});

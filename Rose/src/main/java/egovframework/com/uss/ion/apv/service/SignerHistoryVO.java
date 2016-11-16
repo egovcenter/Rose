@@ -5,6 +5,7 @@ import java.util.Date;
 public class SignerHistoryVO {
 	private String signerHistoryID;//sngr_h_id char(9)
 	private String docID;//doc_id char(9)
+	private int docVersion;//doc_version int(2)
 	private int signerHistorySeq;//sngr_h_seq int(3)
 	private String signerHistoryUserID;//sngr_h_user_id char(9)
 	private String signerHistoryUserName;//sngr_h_user_nm varchar(50)
@@ -23,6 +24,7 @@ public class SignerHistoryVO {
 	public SignerHistoryVO(String signerHistoryID, SignerVO signer){
 		this.signerHistoryID = signerHistoryID;
 		this.docID = signer.getDocID();
+		this.docVersion = signer.getDocVersion();
 		this.signerHistorySeq = signer.getSignSeq();
 		this.signerHistoryUserID = signer.getUserID();
 		this.signerHistoryUserName = signer.getSignerName();
@@ -70,6 +72,18 @@ public class SignerHistoryVO {
 	 */
 	public void setDocID(String docID) {
 		this.docID = docID;
+	}
+	/* (non-Javadoc)
+	 * @see com.tbs.approval.info.impl.SignerHistory#getDocVersion()
+	 */
+	public int getDocVersion() {
+		return docVersion;
+	}
+	/* (non-Javadoc)
+	 * @see com.tbs.approval.info.impl.SignerHistory#setDocVersion(java.lang.String)
+	 */
+	public void setDocVersion(int docVersion) {
+		this.docVersion = docVersion;
 	}
 	/* (non-Javadoc)
 	 * @see com.tbs.approval.info.impl.SignerHistory#getSignerHistorySeq()
@@ -193,7 +207,8 @@ public class SignerHistoryVO {
 	}
 	public String toString() {
 		return "SignerHistoryImpl [signerHistoryID=" + signerHistoryID
-				+ ", docID=" + docID + ", signerHistorySeq=" + signerHistorySeq
+				+ ", docID=" + docID + ", docVersion=" + docVersion 
+				+ ", signerHistorySeq=" + signerHistorySeq
 				+ ", signerHistoryUserID=" + signerHistoryUserID
 				+ ", signerHistoryUserName=" + signerHistoryUserName
 				+ ", signerHistoryPositionName=" + signerHistoryPositionName

@@ -8,28 +8,29 @@
 	<resultMap id="SignerDetail" class="egovframework.com.uss.ion.apv.service.SignerVO">
 		<result property="signerID" 			column="SNGR_ID" 			columnIndex="1" />
 		<result property="docID" 				column="DOC_ID" 			columnIndex="2" />
-		<result property="signSeq" 				column="SNGR_SEQ" 			columnIndex="3" />
-		<result property="userID" 				column="SNGR_USER_ID" 		columnIndex="4" />
-		<result property="signerName" 			column="SNGR_USER_NM" 		columnIndex="5" />
-		<result property="signerPositionName" 	column="SNGR_POSI_NM" 		columnIndex="6" />
-		<result property="signerDutyName" 		column="SNGR_DUTY_NM" 		columnIndex="7" />
-		<result property="signerDeptID" 		column="SNGR_DEPT_ID" 		columnIndex="8" />
-		<result property="signerDeptName"		column="SNGR_DEPT_NM" 		columnIndex="9" />
-		<result property="signKind" 			column="SNGR_KIND" 			columnIndex="10" />
-		<result property="signState" 			column="SNGR_STATE" 		columnIndex="11" />
-		<result property="signDate" 			column="SNGR_DT" 			columnIndex="12" />
-		<result property="signSubUserFlag" 		column="SNGR_SUBUSER_F" 	columnIndex="13" />
-		<result property="signOrignUserID" 		column="SNGR_ORGUSER_ID" 	columnIndex="14" />
-		<result property="opinion" 				column="SNGR_OPN" 			columnIndex="15" />
+		<result property="docVersion" 			column="DOC_VERSION" 		columnIndex="3" />
+		<result property="signSeq" 				column="SNGR_SEQ" 			columnIndex="4" />
+		<result property="userID" 				column="SNGR_USER_ID" 		columnIndex="5" />
+		<result property="signerName" 			column="SNGR_USER_NM" 		columnIndex="6" />
+		<result property="signerPositionName" 	column="SNGR_POSI_NM" 		columnIndex="7" />
+		<result property="signerDutyName" 		column="SNGR_DUTY_NM" 		columnIndex="8" />
+		<result property="signerDeptID" 		column="SNGR_DEPT_ID" 		columnIndex="9" />
+		<result property="signerDeptName"		column="SNGR_DEPT_NM" 		columnIndex="10" />
+		<result property="signKind" 			column="SNGR_KIND" 			columnIndex="11" />
+		<result property="signState" 			column="SNGR_STATE" 		columnIndex="12" />
+		<result property="signDate" 			column="SNGR_DT" 			columnIndex="13" />
+		<result property="signSubUserFlag" 		column="SNGR_SUBUSER_F" 	columnIndex="14" />
+		<result property="signOrignUserID" 		column="SNGR_ORGUSER_ID" 	columnIndex="15" />
+		<result property="opinion" 				column="SNGR_OPN" 			columnIndex="16" />
 	</resultMap>
 	
 	<select id="SignerDAO.selectApprovalSigners" parameterClass="SignerVO" resultMap="SignerDetail">
 		<![CDATA[
 			SELECT
-				si.SNGR_ID, 		si.DOC_ID, 			si.SNGR_SEQ, 		si.SNGR_USER_ID, 
-				si.SNGR_USER_NM,	si.SNGR_POSI_NM,	si.SNGR_DUTY_NM, 	si.SNGR_DEPT_ID, 
-				si.SNGR_DEPT_NM,	si.SNGR_KIND, 		si.SNGR_STATE, 		si.SNGR_DT, 
-				si.SNGR_SUBUSER_F, 	si.SNGR_ORGUSER_ID,	si.SNGR_OPN
+				si.SNGR_ID, 		si.DOC_ID, 			si.DOC_VERSION,		si.SNGR_SEQ, 		
+				si.SNGR_USER_ID,    si.SNGR_USER_NM,	si.SNGR_POSI_NM,	si.SNGR_DUTY_NM, 	
+				si.SNGR_DEPT_ID,    si.SNGR_DEPT_NM,	si.SNGR_KIND, 		si.SNGR_STATE, 		
+				si.SNGR_DT,         si.SNGR_SUBUSER_F, 	si.SNGR_ORGUSER_ID,	si.SNGR_OPN
 			FROM SIGNER_INFO si
 			WHERE si.DOC_ID = #docID#
 			ORDER BY si.SNGR_SEQ desc
@@ -40,6 +41,7 @@
 			INSERT INTO SIGNER_INFO 
 				( SNGR_ID			, 	
 				  DOC_ID			, 			
+				  DOC_VERSION		, 			
 				  SNGR_SEQ			, 		
 				  SNGR_USER_ID		, 
 				  SNGR_USER_NM		,	
@@ -56,6 +58,7 @@
 		 	VALUES ( 
 		 		  #signerID#		,
 		 		  #docID#			,
+		 		  #docVersion#		,
 		 		  #signSeq#			,
 		 		  #userID#			,
 		 		  #signerName#		,
@@ -77,6 +80,7 @@
 				SIGNER_INFO 
 			SET
 				DOC_ID		 	= #docID#,
+				DOC_VERSION		= #docVersion#,
 				SNGR_SEQ 	 	= #signSeq#, 
 				SNGR_USER_ID 	= #userID#, 
 				SNGR_USER_NM 	= #signerName#, 
@@ -94,4 +98,13 @@
 			 	SNGR_ID 		= #signerID#
 		]]>
 	</update>	
+	
+	<delete id="SignerDAO.deleteApprovalSigner" parameterClass="SignerVO">
+		<![CDATA[
+			DELETE FROM 
+				SIGNER_INFO 
+			WHERE
+			 	SNGR_ID 		= #signerID#
+		]]>
+	</delete>
 </sqlMap>

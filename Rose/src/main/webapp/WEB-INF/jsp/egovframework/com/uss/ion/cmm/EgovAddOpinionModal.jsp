@@ -34,17 +34,35 @@ function closeOpinion(){
 </head>
 <body>
 <div class="layerPopup_rapper opinionPopup" style="position:absolute;">
-	<p class="popup_title type_approval">Opinion</p>
-	<div class="ui_btn_rapper float_right mtb10">
+	<p class="popup_title type_approval opiniontitle">
+		<c:if test="${type eq 'approve'}"><spring:message code="appvl.label.approval"/></c:if> 
+		<c:if test="${type eq 'reject'}"><spring:message code="appvl.label.reject"/></c:if> 
+		<c:if test="${type eq 'hold'}"><spring:message code="appvl.label.hold"/></c:if> 
+		<c:if test="${type eq 'draft'}"><spring:message code="appvl.label.draft"/></c:if> 
+		<c:if test="${type eq 'redraft' or type eq 'redraftForIncoming'}"><spring:message code="appvl.label.redraft"/></c:if> 
+		<c:if test="${type eq 'receive'}"><spring:message code="appvl.label.register"/></c:if> 
+	</p>
+	<div class="float_right mtb10">
 		<input type="button" id="apply_opinion_button" value='<spring:message code="common.button.apply"/>' class="but_navy" onClick="opinionDisabled('${type}');"/>
-		<a href="javascript:closeOpinion()" class="btn_color2"><spring:message code="common.button.cancel"/></a>
+		<input type="button" id="cancel_opinion_button" value='<spring:message code="common.button.cancel"/>' class="but_gray" onClick="closeOpinion();"/>
 	</div>
-	
-	<div class="table_rapper display_table">
-		<div class="display_tableCell_top">
-			<textarea id="opinion" name="opinion" maxlength="1000" style="width:595px; height: 300px; overflow: auto;"></textarea>
-		</div>			
-	</div>	
+	<table summary="" class="board_width_borderNone">
+		<caption class="blind"></caption>
+		<colgroup>
+			<col width="50px"/>
+			<col width="*"/>
+		</colgroup>
+		<tbody>
+			<tr>
+			<td align="left">Opinion</td>
+			<td colspan="2" style="padding-left: 10px;">
+				<div class="display_tableCell_top">
+					<textarea id="opinion" name="opinion" maxlength="1000" style="width:535px; height: 300px; overflow: auto;"></textarea>
+				</div>			
+			</td>
+			</tr>
+		</tbody>
+	</table>
 </div>
 <div id="shadow_opinion"></div>
 <input type="hidden" id="display" value="" />

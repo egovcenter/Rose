@@ -64,4 +64,32 @@ public class AttachFileDAO extends EgovComAbstractDAO {
 		delete("FileAttatchDAO.deleteAttachFile", fileInf);
 	}
 	
+	/**
+	 * Insert information for Changed attached file
+	 * @param fileInf
+	 * @throws Exception
+	 */
+	public void insertChangedAttachFile(AttachFileVO fileInf) throws Exception {
+		insert("FileAttachDAO.insertChangedAttachFile", fileInf);
+	}
+	
+	/**
+	 * Delete information for Changed attached file
+	 * @param fileInf
+	 * @throws Exception
+	 */
+	public void deleteChangedAttachFile(AttachFileVO fileInf) throws Exception {
+		delete("FileAttatchDAO.deleteChangedAttachFile", fileInf);
+	}
+	
+	/**
+	 * Retrieve list of changed attached file information 
+	 * @param attachFileInf 
+	 * @return List<AttachFileVO>
+	 * @throws Exception
+	 */
+	public List<AttachFileVO> selectAttachFileListHistoryByDocId(AttachFileVO attachFileInf) throws Exception {
+		return (List<AttachFileVO>) list("FileAttachDAO.selectAttachFileListHistoryByDocId", attachFileInf);
+	}
+	
 }

@@ -1,6 +1,7 @@
 package egovframework.com.uss.ion.apv.service;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class AttachFileVO implements Serializable {
 
@@ -35,6 +36,34 @@ public class AttachFileVO implements Serializable {
 	 * file type
 	 */
 	protected String attachType; //atta_type	char(4)
+	
+	/**
+	 * file datetime
+	 */
+	protected Date attachDateTime; //atta_datetime	datetime
+
+	/**
+	 * file signer id
+	 */
+	protected String attachSignerId; //atta_signer_id char(20)
+
+	/**
+	 * file action
+	 */
+	protected String attachAction; //atta_action char(20)
+	
+	/**
+	 * file Signer Nm
+	 */
+	protected String attachSignerNm; //atta_signer_nm char(20)
+	
+	public String getAttachSignerNm() {
+		return attachSignerNm;
+	}
+
+	public void setAttachSignerNm(String attachSignerNm) {
+		this.attachSignerNm = attachSignerNm;
+	}
 
 	public String getAttachID() {
 		return attachID;
@@ -88,11 +117,37 @@ public class AttachFileVO implements Serializable {
 		return serialVersionUID;
 	}
 
+	public Date getAttachDateTime() {
+		return attachDateTime;
+	}
+
+	public void setAttachDateTime(Date attachDateTime) {
+		this.attachDateTime = attachDateTime;
+	}
+
+	public String getAttachSignerId() {
+		return attachSignerId;
+	}
+
+	public void setAttachSignerId(String attachSignerId) {
+		this.attachSignerId = attachSignerId;
+	}
+
+	public String getAttachAction() {
+		return attachAction;
+	}
+
+	public void setAttachAction(String attachAction) {
+		this.attachAction = attachAction;
+	}
+
 	@Override
 	public String toString() {
 		return "AttachImpl [attachID=" + attachID + ", docID=" + docID
 				+ ", attachNm=" + attachNm + ", attachSeq=" + attachSeq
 				+ ", attachSize=" + attachSize + ", attachType=" + attachType
+				+ ", attachDateTime=" + attachDateTime + ", attachSignerId=" + attachSignerId
+				+ ", attachAction=" + attachAction
 				+ "]";
 	}
 

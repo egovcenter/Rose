@@ -1,8 +1,9 @@
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html; charset=utf-8" %>
 <%@ page import="java.util.*"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="validator" uri="http://www.springmodules.org/tags/commons-validator" %>
 <%@ include file="/WEB-INF/jsp/egovframework/com/cmm/EgovCommon.jsp"%>
 <html lang="en">
 <!doctype html>
@@ -11,19 +12,20 @@
 <link rel="stylesheet" type="text/css" href="<c:url value='/css/egovframework/com/uss/ion/token-input.css'/>">
 <link rel="stylesheet" type="text/css" href="<c:url value='/css/egovframework/com/uss/ion/token-input-facebook.css'/>">
 <link rel="stylesheet" type="text/css" href="<c:url value='/css/egovframework/com/uss/ion/jquery-sortable.css'/>">
-
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery-1.7.1.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery-ui-1.11.4.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.tokeninput.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/json2.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/drafting.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/approval.js'/>"></script>
-
 <link rel="stylesheet" type="text/css" href="<c:url value='/js/egovframework/com/uss/ion/jquery.fileUpload/fileUpload.css'/>" >
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.hs.localization.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.fileUpload/fileUpload.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.form.js"'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/popup.js"'/>"></script>
+<script type="text/javascript" src="<c:url value='/js/egovframework/com/cmm/fms/EgovMultiFile.js'/>" ></script>
+<script type="text/javascript" src="<c:url value="/validator.do"/>"></script>
+<validator:javascript formName="attach" staticJavascript="false" xhtml="true" cdata="false"/>
 <script>
 var APPROVAL_CONTEXT = "${pageContext.servletContext.contextPath}";
 var userId = "${user.uniqId}";
@@ -53,6 +55,42 @@ function toggle_content(obj, ID){
 		}
 	});
 }
+function makeFileAttachment(){
+	var maxFileNum = $("#posblAtchFileNumber").val();
+	if(maxFileNum==null || maxFileNum==""){
+		maxFileNum = 3;
+	}
+	var multi_selector = new MultiSelector( document.getElementById( 'egovComFileList' ), maxFileNum, '${pageContext.request.contextPath}');
+	multi_selector.addElement( document.getElementById( 'egovComFileUploader' ) );
+}
+function settingDocumentContent(){
+	var contentHtml = $("#editorContent").html();
+	if(contentHtml != null){
+		$('div#editorContent').replaceWith('<iframe id="iframe_content" scrolling="yes"></iframe>');
+		settingIframe(contentHtml);
+	}else{
+		settingIframe();
+	}
+}
+function autoResize(id) {
+	var iframeBodyHeight = document.getElementById(id).contentWindow.document.body.scrollHeight;
+	var iframe = document.all(id);
+	iframe.style.height = iframeBodyHeight;
+}
+function settingIframe(newContent) {
+	if(newContent != null){
+		var styleSheet = "<link rel='stylesheet' type='text/css' href='html/egovframework/com/cmm/utl/ckeditor/contents.css'>"
+		var iframeHead = $("#iframe_content").contents().find("head");
+		iframeHead.append(styleSheet);
+		
+		var iframeBody = $("#iframe_content").contents().find("body");
+		iframeBody.append(newContent);
+		autoResize("iframe_content");
+	}
+}
+$(function(){
+	settingDocumentContent();
+});
 var signerKind = {
 	'SK00' : '<spring:message code="appvl.signerKind.SK00"/>',
 	'SK01' : '<spring:message code="appvl.signerKind.SK01"/>',
@@ -78,7 +116,7 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 </script>
 </head>
 
-<body>
+<body onLoad="makeFileAttachment();">
 <div class="wrap"> 
 	<!--  Top Menu Start --> 
 	<jsp:include page="/WEB-INF/jsp/egovframework/com/cmm/EgovTopMenu.jsp" flush="false">
@@ -93,6 +131,15 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 		<jsp:param value="draft" name="CommonButton"/>
 		<jsp:param value="approval" name="CommonTitle"/>
 	</jsp:include>
+		<form:form commandName="attach" name="attach" method="post" id="attach" action="${pageContext.servletContext.contextPath}/approved.do" enctype="multipart/form-data" >
+		<input type="hidden" id="fileAtchPosblAt" name="fileAtchPosblAt" value="" />
+		<input type="hidden" id="posblAtchFileNumber" name="posblAtchFileNumber" value="5" />
+		<input type="hidden" id="posblAtchFileSize" name="posblAtchFileSize" value="" />
+		<input type="hidden" id="preAttachedFileList" name="preAttachedFileList" value="" />
+		<input type="hidden" id="docId" name="docId" value="${doc.docID}" />
+		<input type="hidden" id="formId" name="formId" value="${doc.formId}" />
+		<input type="hidden" id="userId" name="userId" value="${user.uniqId}" />
+		<input type="hidden" id="editFlag" name="editFlag" value="false" />
 		<!-- Content Start -->
 		<div class="Content"> 
 			<!-- Content box Start -->
@@ -104,10 +151,13 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 						<h1><spring:message code="appvl.document.title.label.approval"/></h1>						
 					</div>					
 					<div class="but_line">
-						<input type="button" value='<spring:message code="appvl.document.button.approve"/>' class="but_navy mr05" onClick="javascript:addOpinion('approve');"/>
+						<input type="button" value='<spring:message code="appvl.document.button.approval"/>' class="but_navy mr05" onClick="javascript:doApproval();"/>
 						<input type="button" value='<spring:message code="appvl.document.button.reject"/>' class="but_navy mr05" onClick="javascript:addOpinion('reject');"/>
 						<input type="button" value='<spring:message code="appvl.document.button.hold"/>' class="but_navy mr05" onClick="javascript:addOpinion('hold');"/>
-						<input type="button" value='<spring:message code="common.button.cancel"/>' class="but_grayL" onClick="history.back()"/>
+						<c:if test="${doc.docType ne 'DT03'}">
+							<input type="button" value='<spring:message code="appvl.document.button.edit"/>' class="but_gray mr05" onClick="javascript:documentPopup('edit', '${doc.docVersion}');"/>
+						</c:if>
+						<input type="button" value='<spring:message code="common.button.cancel"/>' class="but_grayL" onClick="javascript:cancel();"/>
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -133,16 +183,11 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 									<tbody>
 										<tr>
 											<th scope="row"><label for="label_1"><spring:message code="appvl.documet.label.title"/></label></th>
-											<td colspan="2"><div class="ui_input_text"><input type="text" name="draft_title" value="<c:out value="${doc.docTitle}"/>" readonly="readonly"/></div></td>
+											<td colspan="2"><div class="ui_input_text" style="border-bottom:1px solid #e1e1e1;"><c:out value="${doc.docTitle}"/></div></td>
 										</tr>
 										<tr>
 											<th scope="row"><label for="label_2"><spring:message code="appvl.documet.label.label"/></label></th>
-											<td colspan="2"><div class="ui_input_text"><input type="text" value="<c:out value="${label.labelNm}"/>" id="selectlabelNm" readonly="readonly"/><input type="hidden" value="<c:out value="${doc.lbelId}"/>" id="selectlabelId"/></div></td>
-											<!-- 20160311_SUJI.H <td>
-												<div class="ui_btn_rapper">
-													<a href="#" class="btn_color3 selectLabel" onclick="javascript:openLabelPopup()"><spring:message code="common.button.select"/></a>
-												</div>
-											</td> -->
+											<td colspan="2"><div class="ui_input_text" style="border-bottom:1px solid #e1e1e1;"><c:out value="${label.labelNm}"/><input type="hidden" value="<c:out value="${doc.lbelId}"/>" id="selectlabelId"/></div></td>
 										</tr>
 										<tr>
 											<th scope="row"><spring:message code="appvl.documet.label.security"/></th>
@@ -155,7 +200,8 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 											<th scope="row"><spring:message code="appvl.documet.label.signerline"/> </th>
 											<td colspan="2">
 												<div class="float_right ui_btn_rapper">
-													<a href="javascript:displaySignerHistory()" class="btn_color3"><spring:message code="appvl.document.button.history"/></a>
+													<a href="javascript:changeSignerLine()" class="btn_color3"><spring:message code="appvl.document.button.change"/></a>
+													<a href="javascript:displayApprovalHistory()" class="btn_color3"><spring:message code="appvl.document.button.history"/></a>
 												</div>
 											</td>
 										</tr>
@@ -170,7 +216,8 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 														<col width="80px"/>
 														<col width="90px"/>
 														<col width="120px"/>
-														<col width=""/>
+														<col width="60px"/>
+														<col width="*"/>
 													</colgroup>
 													<thead>
 														<tr>
@@ -179,6 +226,7 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.type"/></span></th>
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.status"/></span></th>
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.date"/></span></th>
+															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.version"/></span></th>
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.opinion"/></span></th>	
 														</tr>
 													</thead>					
@@ -238,13 +286,26 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 															</c:choose>
 														</td>
 														<td>
-															<div class="signer_signDate"><fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${signer.signDate}"/></div>
+															<div class="signer_signDate">
+																<c:if test="${signer.signState ne 'SS03' and signer.signState ne 'SS00'}">
+																	<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${signer.signDate}"/>
+																</c:if>
+															</div>
+														</td>
+														<td>
+															<div class="signer_docVersion">
+																<c:if test="${signer.docVersion ne '0'}">
+																	<c:if test="${signer.signState ne 'SS03' and signer.signState ne 'SS00'}">
+																		<a href="javascript:documentPopup('view','${signer.docVersion}')"><fmt:formatNumber pattern=".0" value="${signer.docVersion}"/></a>
+																	</c:if>	
+																</c:if>	
+															</div>
 														</td>
 														<td>
 															<div class="signer_opinion">
 																<c:if test="${signer.signState ne 'SS00' and signer.signState ne 'SS03'}">
 																	<c:if test="${not empty signer.opinion}"><a href="javascript:opinionView('${signer.opinion}')"><c:out value="${signer.opinion}"/></a></c:if> 
-																	<c:if test="${empty signer.opinion}"><spring:message code="appvl.signerhistory.table.no_opinion"/></c:if>
+																	<c:if test="${empty signer.opinion}"><spring:message code="appvl.approvalhistory.sign.table.no_opinion"/></c:if>
 																</c:if> 
 															</div>
 														</td>
@@ -256,13 +317,32 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 										</tr>
 										<tr>
 											<th scope="row"><spring:message code="appvl.documet.label.attachment"/> </th>
+											<c:if test="${doc.docType ne 'DT03'}">
 											<td colspan="2">
-												<!-- 20160311_SUJI.H <c:if test="${not empty attachList}">
-												<div class="float_right ui_btn_rapper">
-													<a href="#" class="btn_color3"><spring:message code="common.button.select"/></a>
-													<a href="#" class="btn_color2"><spring:message code="common.button.delete"/></a>
-												</div>
-												</c:if>-->
+									           <table width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+												    <tr>
+												        <td><input name="file_1" id="egovComFileUploader" type="file" title="첨부파일입력"/></td>
+												    </tr>
+												    <tr>
+												        <td>
+												        	<div id="egovComFileList"></div>
+												        </td>
+												    </tr>
+									   	        </table>	
+											</td>
+											</c:if>
+										</tr>
+										<tr>
+											<th scope="row"></th>
+											<td colspan="2">
+												<c:if test="${not empty attachList}">
+													<c:if test="${doc.docType ne 'DT03'}">
+														<div class="float_right ui_btn_rapper">
+															<a href="javascript:attachDelete()" class="btn_color2"><spring:message code="common.button.delete"/></a>
+															<a href="javascript:displayAttachmentHistory()" class="btn_color3"><spring:message code="appvl.document.button.history"/></a>
+														</div>
+													</c:if>
+												</c:if>
 											</td>
 										</tr>
 										<tr>
@@ -277,36 +357,32 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 													</colgroup>
 													<thead>
 														<tr>
-															<th scope="col" class="align_center"><img src="<c:url value='/images/egovframework/com/uss/cmm/icon_check.png'/>" alt="icon_check"></th>
+															<th scope="col" class="align_center"><img src="<c:out value="${pageContext.servletContext.contextPath}"/>/images/egovframework/com/uss/cmm/icon_check.png" alt="icon_check"></th>
 															<th scope="col" class=""><span><spring:message code="appvl.documet.label.attachment.table.filename"/></span></th>
 															<th scope="col" class=""><span><spring:message code="appvl.documet.label.attachment.table.filesize"/></span></th>
 														</tr>
 													</thead>					
 													<tbody>
-													<!-- 20160317_SUJI.H -->
 													<c:if test="${empty attachList}">
 														<tr><td colspan="3"><spring:message code="appvl.documet.label.attachment.noattach"/></td></tr>
 													</c:if>
-													<!-- 20160317_SUJI.H -->
 													<c:if test="${not empty attachList}">
-													<c:forEach var="attach" items="${attachList}">
-														<tr>
-															<!-- 20160311_SUJI.H -->
-															<td class="align_center"><input type="checkbox" value="<c:out value="${attach.attachID}"/>" name="attachId" checked onclick="return false;"/></td>
-															<td><a href="javascript:downloadFile('<c:out value="${pageContext.servletContext.contextPath}"/>/downloadAttach.do', '<c:out value="${attach.docID}"/>','<c:out value="${attach.attachID}"/>','<c:out value="${param.userId}"/>')"><c:out value="${attach.attachNm}"/></a></td>
-															<td>
-																<c:choose>
-																	<c:when test="${attach.attachSize / 1024 < 1}">1 KB</c:when>
-																	<c:when test="${attach.attachSize / (1024*1024) < 1}"><fmt:formatNumber value="${attach.attachSize / 1024}" groupingUsed="true" maxFractionDigits="0"/> KB</c:when>
-																	<c:otherwise><fmt:formatNumber value="${attach.attachSize /  (1024*1024)}" groupingUsed="true" maxFractionDigits="0"/> MB</c:otherwise>
-																</c:choose>
-															</td>
-														</tr>
-													</c:forEach>
+														<c:forEach var="attach" items="${attachList}">
+															<tr>
+																<td class="align_center"><input type="checkbox" value="<c:out value="${attach.attachID}"/>" name="attachId" <c:if test="${doc.docType eq 'DT03'}"> checked disabled="disabled"</c:if> /></td>
+																<td><a href="javascript:downloadFile('<c:out value="${pageContext.servletContext.contextPath}"/>/downloadAttach.do', '<c:out value="${attach.docID}"/>','<c:out value="${attach.attachID}"/>','<c:out value="${param.userId}"/>')"><c:out value="${attach.attachNm}"/></a></a></td>
+																<td>
+																	<c:choose>
+																		<c:when test="${attach.attachSize / 1024 < 1}">1 KB</c:when>
+																		<c:when test="${attach.attachSize / (1024*1024) < 1}"><fmt:formatNumber value="${attach.attachSize / 1024}" groupingUsed="true" maxFractionDigits="0"/> KB</c:when>
+																		<c:otherwise><fmt:formatNumber value="${attach.attachSize /  (1024*1024)}" groupingUsed="true" maxFractionDigits="0"/> MB</c:otherwise>
+																	</c:choose>
+																</td>
+															</tr>
+														</c:forEach>
 													</c:if>
 													</tbody>
 												</table>
-												<!-- 20160311_SUJI.H <div id="fileUpload" name="fileUpload" class="fileUpload" style="width:99%"></div>-->
 											</td>
 										</tr>
 										<c:if test="${doc.docType eq 'DT02'}">
@@ -389,21 +465,25 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 				<!-- approval_document Start-->
 				<div class="tabContent_rapper" id="approval_document" style="display: none">
 					<div class="table_rapper">
-						<form id="draft_form" name="draft_form" action="<c:out value="${pageContext.servletContext.contextPath}"/>/approved.do" method="post">
 						<div class="print_rapper" id="draft_body">
 							<c:out value="${docBody}" escapeXml="false"/>
 						</div>
-						</form>
 					</div>			
 				</div>
 				<!-- approval_document End -->
 			</div>
 			<!-- Content box End -->
 		</div>
-		<!-- Content End --> 
+		<!-- Content End -->
+		</form:form> 
 	</div>
 	<!-- Container End -->
 	<div id="div_popup" style="display: none"></div>
+	<form:form id="popupForm" name="popupForm" method="post" action="${pageContext.servletContext.contextPath}/documentEditor.do" target="">
+		<input type="hidden" id="docId" name="docId" value="${doc.docID}" />
+		<input type="hidden" id="action" name="action" value="" />
+		<input type="hidden" id="docVersion" name="docVersion" value="" />
+	</form:form>
 </div>
 <!-- wrap End -->
 <%@ include file="/WEB-INF/jsp/egovframework/com/cmm/EgovCopyright.jsp" %>
@@ -428,6 +508,29 @@ $( ".Status" ).click(function() {
 $( ".btn_popup_close" ).click(function() {
   $( ".statusSlide_rapper" ).slideUp( 500, function() {});
 });
+function doApproval() {
+	var obj = getPreAttachedList();
+	$("#preAttachedFileList").val(JSON.stringify(obj));
+	addOpinion('approve');
+}
+function attachDelete() {
+	$('input:checkbox[name="attachId"]').each(function(){
+		if($(this).is(":checked") == true){
+			var deleteTr = $(this).parent().parent();
+			deleteTr.remove();
+		}
+	});
+}
+function getPreAttachedList() {
+    var idList = new Array();
+    $('input:checkbox[name=attachId]').each(function() {
+        var attachId = $(this).val();
+        if (attachId != undefined) {
+            idList.push({"attachId" : attachId});
+    	}
+    });
+    return idList;
+}
 //]]>
 </script>
 </html>

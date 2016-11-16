@@ -458,8 +458,8 @@ public class EgovApprovalDocServiceImpl extends EgovAbstractServiceImpl implemen
     }
     
     public String getDocBody(Doc doc) throws Exception{
-        File file = PathUtil.getDocPath(doc);
+        File docFile = PathUtil.getDocPath(doc);
         
-        return FileUtils.readFileToString(file);
+        return FileUtils.readFileToString(docFile, "utf-8");
     }
 }

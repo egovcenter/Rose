@@ -12,15 +12,16 @@
 </head>
 <body>
 <%
-	String fileName = request.getParameter("FN");
-	String fileType = request.getParameter("FT");
+	String fileName = request.getParameter("savedFileName");
+	String subDir = request.getParameter("subDir");
 	
 	System.out.println(String.format("fileName=%s", fileName));
-	System.out.println(String.format("fileType=%s", fileType));	
+	System.out.println(String.format("fileType=%s", subDir));	
 	
 	ServletContext context = getServletContext();
 	PathUtil pathUtil = new PathUtil();
-	String realFolder = pathUtil.getUserDataPath();
+	String realFolder = pathUtil.getCkeditorImagePath();
+	realFolder = realFolder+subDir;
 	System.out.println(String.format("realFolder=%s", realFolder));
 
 	try {
@@ -29,24 +30,10 @@
 		
 		File file = null;
 		if (StringUtils.isNotBlank(fileName)) {
-			if(fileType.equalsIgnoreCase("document")){
-				realFolder = pathUtil.getDocumentImagePath();
-				file = new File(realFolder, fileName);
-			}else{
-				file = new File(realFolder, StringUtils.join(new String[] {fileName, fileType}, "-"));
-			}
+			file = new File(realFolder, fileName);
 			System.out.println(String.format("path=%s", file.getCanonicalPath()));
 		} 
 		
-		if ((file == null) || !file.exists()) {
-			System.out.println(String.format("path=%s", context.getRealPath(".")));
-			//file = new File(context.getRealPath("public/image"), "No-Image");
-            if (StringUtils.equals(fileType, OrgConstant.IMAGE_FILE_TYPE_SIGN)) {
-                file = new File(context.getRealPath("images/egovframework/com/uss/cmm"), "NoImage.png");
-            } else if (StringUtils.equals(fileType, OrgConstant.IMAGE_FILE_TYPE_PHOTO)) {
-                file = new File(context.getRealPath("images/egovframework/com/uss/cmm"), "empty_photo.png");
-            } 
-		}
 		System.out.println(String.format("path=%s", file.getCanonicalPath()));
 		byte b[] = new byte[4096];
 		response.reset();

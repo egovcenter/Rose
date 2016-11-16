@@ -36,6 +36,7 @@ import egovframework.com.uss.umt.service.UserManageVO;
 public class PathUtil implements InitializingBean{
     
 	private static String baseDir = EgovProperties.getProperty(Globals.APPROVAL_CONF_PATH, "approval.data.basedir");
+	private static String tmpDir = EgovProperties.getProperty(Globals.APPROVAL_CONF_PATH, "approval.data.tmpdir");
 
 	public static String getBaseDir() {
 		return baseDir;
@@ -107,8 +108,16 @@ public class PathUtil implements InitializingBean{
 	// TODO doc'path will be changed to the relative path with created date.
 	public static File getDocPath(Doc doc){
 		File docDir = createDocDir(baseDir, doc.getDocID());
+		String docVersion = String.format("%02d", doc.getDocVersion());
 		
-		return new File(docDir.getAbsoluteFile()+File.separator+doc.getDocID());
+		return new File(docDir.getAbsoluteFile()+File.separator+doc.getDocID()+"_"+docVersion);
+	}
+	
+	public static File getDocTmpPath(Doc doc){
+		File docDir = createDocDir(tmpDir, doc.getDocID());
+		String docVersion = String.format("%02d", doc.getDocVersion());
+		
+		return new File(docDir.getAbsoluteFile()+File.separator+doc.getDocID()+"_"+docVersion);
 	}
 	
 	public static File getAttachPath(AttachFileVO attach){
@@ -178,6 +187,24 @@ public class PathUtil implements InitializingBean{
 		}
 	}
 	
+	public static File createTmpDocFile(Doc doc, String html) throws Exception{
+		if(html == null) return null;
+		
+		OutputStream out = null;
+		try{
+			File file = getDocTmpPath(doc);
+			
+			out = new BufferedOutputStream(new FileOutputStream(file));
+			IOUtils.write(html, out, "utf-8");
+			
+			return file;
+		}catch(Exception e){
+			throw e;
+		}finally{
+			try{if(out != null) out.close();}catch(Exception e){}
+		}
+	}
+	
 	public static File saveFile(File file, String html) throws Exception{
 		OutputStream out = null;
 		try{
@@ -199,6 +226,19 @@ public class PathUtil implements InitializingBean{
 		FileUtils.moveFile(srcFile, attachFile);
 		
 		return attachFile;
+	}
+	
+	public static File moveFile(Doc doc) throws Exception{
+		File tmpDocDir = getDocTmpPath(doc);
+		File docDir = getDocPath(doc);
+		FileUtils.moveFile(tmpDocDir, docDir);
+		
+		return docDir;
+	}
+
+	public static void deleteTmpFile(Doc doc) throws Exception{
+		File file = getDocTmpPath(doc);
+		file.delete();
 	}
 	
    public static File saveAttachFile(AttachFileVO attach, MultipartFile srcFile) throws Exception{
@@ -244,5 +284,13 @@ public class PathUtil implements InitializingBean{
     
     public String getUserDataPath() {
         return StringUtils.join(new String[] {getBaseDir(), "user"}, File.separator);
+    }
+    
+    public String getDocumentImagePath() {
+    	return StringUtils.join(new String[] {getBaseDir(), "image", "document"}, File.separator);
+    }
+    
+    public String getCkeditorImagePath() {
+    	return StringUtils.join(new String[] {getBaseDir(), "image", "ckeditor"}, File.separator);
     }
 }

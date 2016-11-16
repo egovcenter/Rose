@@ -62,7 +62,7 @@ public class CkFilter implements Filter {
 
 	public void init(FilterConfig filterConfig) throws ServletException {
 		String properties = filterConfig.getInitParameter("properties");
-		InputStream inStream = Thread.currentThread().getContextClassLoader()	.getResourceAsStream(properties);
+		InputStream inStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(properties);
 		Properties props = new Properties();
 		try {
 			props.load(inStream);

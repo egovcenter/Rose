@@ -447,6 +447,8 @@ function displayExternal(tabObj, ID){
 <input type="hidden" id="message_invalidvalue" value="부서명 검색으로 특수문자를 사용할 수 없습니다." />
 <!-- ==== DirectoryWeb End ==== -->
 </body>
+
+
 <script language="javascript" type="text/javascript"> 
 //<![CDATA[
 function assign_recipient_load_ui(){

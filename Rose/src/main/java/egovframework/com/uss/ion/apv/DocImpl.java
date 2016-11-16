@@ -14,6 +14,11 @@ public class DocImpl extends SearchCriteria implements Doc, Serializable {
 	protected String docID;
 	
 	/**
+	 * 문서version
+	 */
+	protected int docVersion;
+	
+	/**
 	 * 분류태그ID
 	 */
 	protected String lbelId;
@@ -137,6 +142,12 @@ public class DocImpl extends SearchCriteria implements Doc, Serializable {
 	public void setDocID(String docID) {
 		this.docID = docID;
 	}
+	public int getDocVersion() {
+		return docVersion;
+	}
+	public void setDocVersion(int docVersion) {
+		this.docVersion = docVersion;
+	}
 	public String getLbelId() {
 		return lbelId;
 	}
@@ -226,9 +237,9 @@ public class DocImpl extends SearchCriteria implements Doc, Serializable {
 	}
 	@Override
 	public String toString() {
-		return "DocImpl [docID=" + docID + ", lbelID=" + lbelId + ", docTitle="
-				+ docTitle + ", docCd=" + docCd + ", docSyear=" + docSyear
-				+ ", docSlvl=" + docSlvl + ", docEmF=" + docEmF + ", docPpF="
+		return "DocImpl [docID=" + docID + ", docVersion=" + docVersion + ", lbelID=" 
+				+ lbelId + ", docTitle="+ docTitle + ", docCd=" + docCd + ", docSyear=" 
+				+ docSyear+ ", docSlvl=" + docSlvl + ", docEmF=" + docEmF + ", docPpF="
 				+ docPpF + ", docAttaF=" + docAttaF + ", docOpnF=" + docOpnF
 				+ ", docPState=" + docPState + ", docFState=" + docFState
 				+ ", formID=" + formId + ", docOrgID=" + docOrgId

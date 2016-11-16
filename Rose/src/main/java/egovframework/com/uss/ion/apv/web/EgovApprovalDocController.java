@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ import egovframework.com.uss.ion.apv.service.EgovApprovalAuthService;
 import egovframework.com.uss.ion.apv.service.EgovApprovalDocService;
 import egovframework.com.uss.ion.apv.service.EgovAttachFileService;
 import egovframework.com.uss.ion.apv.service.EgovRecipientService;
+import egovframework.com.uss.ion.apv.service.EgovSignerChangeHistoryService;
 import egovframework.com.uss.ion.apv.service.EgovSignerHistoryService;
 import egovframework.com.uss.ion.apv.service.EgovSignerService;
 import egovframework.com.uss.ion.apv.service.InboxDocVO;
@@ -60,6 +62,7 @@ import egovframework.com.uss.ion.apv.service.PassboxDocVO;
 import egovframework.com.uss.ion.apv.service.RecipientVO;
 import egovframework.com.uss.ion.apv.service.RegisterIncomingVO;
 import egovframework.com.uss.ion.apv.service.RegisterInternalVO;
+import egovframework.com.uss.ion.apv.service.SignerChangeHistoryVO;
 import egovframework.com.uss.ion.apv.service.SignerHistoryVO;
 import egovframework.com.uss.ion.apv.service.SignerVO;
 import egovframework.com.uss.ion.apv.service.UserApprovalAuthVO;
@@ -124,6 +127,9 @@ public class EgovApprovalDocController {
 	@Resource(name = "EgovSignerHistoryService")
 	private EgovSignerHistoryService signerHistoryService;
 	
+	@Resource(name = "EgovSignerChangeHistoryService")
+	private EgovSignerChangeHistoryService signerChangeHistoryService;
+	
 	@Resource(name = "EgovRecipientService")
 	private EgovRecipientService recipientService;
 	
@@ -183,7 +189,6 @@ public class EgovApprovalDocController {
 		DeptVO userDept = deptService.getDept(loginVO.getOrgnztId());
 		
 		String[] arrAuthes = StringUtils.split(authes, ",;");
-		List ruleParameters = new ArrayList(arrAuthes.length);
 		for (int i = 0; i < arrAuthes.length; i++) {
 			String auth = arrAuthes[i];
 			RuleParameter parameter = null;
@@ -261,46 +266,8 @@ public class EgovApprovalDocController {
 		return model;
 	}
 	
-	@RequestMapping("/drafting.do")
-	public ModelAndView drafting(HttpServletRequest request, HttpServletResponse response) throws Exception{
-		ModelAndView model = new ModelAndView();
-        LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
-        
-        if(isAuthentication(request, response, loginVO)) {
-
-			String userId = request.getParameter("userId");
-			String formId = request.getParameter("formId");
-			UserManageVO drafter = userService.getUser(userId);
-			
-			Doc doc = requestUtilService.getDoc(request);
-			String docId = idgenService.getNextStringId();
-			doc.setDocID(docId);
-			
-			FormVO form = formService.getForm(formId);
-			if(form == null){
-				throw new Exception("can not find the form info["+formId+"]");
-			}
-			
-			List<SignerVO> signerList = signerService.getDefaultSignerList(form, drafter);
-			String docBody = signerService.createDraftDoc(form, drafter, null, null);
-			
-			model.addObject("drafter", drafter);
-			model.addObject("doc", doc);
-			model.addObject("docBody", docBody);
-			model.addObject("signerList", signerList);
-			model.addObject("user", loginVO);
-			
-			model.setViewName("approval/box/drafting");
-		}else{
-			model.setViewName("egovframework/com/uat/uia/EgovLoginUsr");
-		}
-		
-		return model;
-	}
-	
 	@RequestMapping("/draft.do")
 	public String draft(HttpServletRequest request, HttpServletResponse response)throws Exception{
-		ModelAndView model = new ModelAndView();
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
         String url = null;
         
@@ -313,13 +280,16 @@ public class EgovApprovalDocController {
             String docType = request.getParameter("docType");
 			UserManageVO drafter = userService.getUser(userId);
 
-			Doc doc = requestUtilService.getDoc(request);
-			List<SignerVO> signerList = requestUtilService.getSignerList(request);
+			if(docId.equals("no_doc_id")){
+				docId = idgenService.getNextStringId();
+			}
+			Doc doc = requestUtilService.getDoc(request, docId);
+			List<SignerVO> signerList = requestUtilService.getSignerList(request, docId, drafter.getUniqId(), doc.getDocVersion());
 			String docBody = requestUtilService.getDocBody(request);
 			String opinion = request.getParameter("opinion");
 
 			List<AttachFileVO> attachList = null;
-			List<RecipientVO> recipientList = requestUtilService.getRecipientList(request);
+			List<RecipientVO> recipientList = requestUtilService.getRecipientList(request, docId);
 			if (request instanceof MultipartHttpServletRequest) {
                 opinion = URLDecoder.decode(opinion, "UTF-8");
                 setOpinion(signerList, userId, opinion);
@@ -346,13 +316,78 @@ public class EgovApprovalDocController {
 		return url;
 	}
 	
+	@RequestMapping("/redraft.do")
+	public String redraft(HttpServletRequest request, HttpServletResponse response)throws Exception{
+		LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
+		String url = null;
+		
+		if (isAuthentication(request, response, loginVO)) {
+			UserManageVO user = userService.getUser(loginVO.getUniqId());
+			
+			String userId = user.getUniqId();
+			String formId = request.getParameter("formId");
+			String docId = request.getParameter("docId");
+			String docType = request.getParameter("docType");
+			String editFlag = request.getParameter("editFlag");
+			String preAttachFileListJson = request.getParameter("preAttachedFileList");
+			UserManageVO drafter = userService.getUser(userId);
+			int docVersion = 1;
+			
+			Doc doc = requestUtilService.getDoc(request, docId);
+			if(editFlag.equalsIgnoreCase("true")){
+				docVersion = doc.getDocVersion()+1;
+				doc.setDocVersion(docVersion);
+				PathUtil.moveFile(doc);
+			}else{
+				docVersion = doc.getDocVersion();
+			}
+			
+			List<SignerVO> signerList = requestUtilService.getSignerList(request, docId, drafter.getUniqId(), doc.getDocVersion());
+			String docBody = signerService.getDocForView(doc);
+			String opinion = request.getParameter("opinion");
+			
+			List<AttachFileVO> oldAttachList = attachFileService.getAttachFileListByDocId(doc.getDocID());
+			List<AttachFileVO> newAttachList = null;
+			if (request instanceof MultipartHttpServletRequest) {
+	            opinion = URLDecoder.decode(opinion, "UTF-8");
+	            setOpinion(signerList, userId, opinion);
+	            
+	            newAttachList = requestUtilService.getAttachFileList((MultipartHttpServletRequest)request, doc.getDocID());
+	            preAttachFileListJson = request.getParameter("preAttachedFileList");
+	            if(preAttachFileListJson.length() > 2){
+	            	List<String> preAttachFileListString = signerService.getPreAttachedFileIdList(preAttachFileListJson);
+	            	for(int i=0; i<preAttachFileListString.size(); i++){
+		            	AttachFileVO preAttachFileList = new AttachFileVO();
+		            	preAttachFileList.setAttachID(preAttachFileListString.get(i));
+		            	newAttachList.add(preAttachFileList);
+	            	}//end of for
+	            }
+			}else{
+				setOpinion(signerList, userId, opinion);
+				newAttachList = requestUtilService.getAttachList(request, doc);
+			}
+			makeChangedAttachmentList(oldAttachList, newAttachList, userId);
+			
+			List<RecipientVO> recipientList = requestUtilService.getRecipientList(request, docId);
+			Map parameterMap = requestUtilService.getParameterMap(request);
+			
+			FormVO form = formService.getForm(formId);
+			if(form == null){
+				throw new Exception("can not find the form info["+formId+"]");
+			}
+			
+			ApprovalContext approvalContext = new ApprovalContext(doc, signerList, newAttachList, recipientList);
+			signerService.approveForDraft(drafter, approvalContext, docBody, parameterMap, preAttachFileListJson);
+			url = "forward:/approvalDocPageList.do?docType="+ docType;
+		}
+		return url;
+	}
+	
 	private void setOpinion(List<SignerVO> signerList, String userId, String opinion) {
 		if ((signerList == null)
 				|| (userId == null)) {
 			return;
 		}
-		
-		int listSize = signerList.size();
 		
 		for (SignerVO user : signerList) {
 			if (user.getUserID().equalsIgnoreCase(userId)) {
@@ -369,15 +404,9 @@ public class EgovApprovalDocController {
         
         if(isAuthentication(request, response, loginVO)) {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
-
-			String userId = user.getUniqId();
-			String formId = request.getParameter("formId");
-			String docId = request.getParameter("docId");
-			
-			UserManageVO signer = userService.getUser(userId);
 			String redraft = request.getParameter("redraft");
 			
-			List<SignerVO> signerList = requestUtilService.getSignerList(request);
+			List<SignerVO> signerList = requestUtilService.getSignerList(request, null, null, 0);
 			Collections.sort(signerList, new Comparator<SignerVO>() {
 				public int compare(SignerVO o1, SignerVO o2) {
 					return o2.getSignSeq() - o1.getSignSeq();
@@ -400,8 +429,6 @@ public class EgovApprovalDocController {
         
         if(isAuthentication(request, response, loginVO)) {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
-			
-			String userId = user.getUniqId();
 			String checkType = request.getParameter("checkType");
 			
 			model.addObject("user", user);
@@ -420,13 +447,9 @@ public class EgovApprovalDocController {
         
         if(isAuthentication(request, response, loginVO)) {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
-
-			String userId = user.getUniqId();
-			String formId = request.getParameter("formId");
 			String docId = request.getParameter("docId");
-			UserManageVO signer = userService.getUser(userId);
 			
-			List<RecipientVO> recipientList = requestUtilService.getRecipientList(request);
+			List<RecipientVO> recipientList = requestUtilService.getRecipientList(request, docId);
 			
 			model.addObject("recipientList", recipientList);
 			model.addObject("user", user);
@@ -491,21 +514,17 @@ public class EgovApprovalDocController {
 		return model;
 	}
 	
-	@RequestMapping("/signerhistory.do")
-	public ModelAndView signerhistory(HttpServletRequest request, HttpServletResponse response)throws Exception{
+	@RequestMapping("/approvalHistory.do")
+	public ModelAndView displaySignerLineHistory(HttpServletRequest request, HttpServletResponse response)throws Exception{
 		ModelAndView model = new ModelAndView();
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
         
         if(isAuthentication(request, response, loginVO)) {
-            UserManageVO user = userService.getUser(loginVO.getUniqId());
-
-			String userId = user.getUniqId();
 			String docId = request.getParameter("docId");
-			UserManageVO signer = userService.getUser(userId);
-//			log.debug("signerhistory userId["+userId+"], docId["+docId+"]");
-			
+            UserManageVO user = userService.getUser(loginVO.getUniqId());
+            
+			List<SignerChangeHistoryVO> signerChangeHistory = signerChangeHistoryService.getChangeHistory(docId);
 			List<SignerHistoryVO> signerHistoryList = signerHistoryService.getSignerHistoryList(docId);
-//			log.debug("signerhistory signerHistoryList["+signerHistoryList+"]");
 
 			Collections.sort(signerHistoryList, new Comparator<SignerHistoryVO>() {
 				public int compare(SignerHistoryVO o1, SignerHistoryVO o2) {
@@ -518,15 +537,17 @@ public class EgovApprovalDocController {
 					return o2.getSignerHistoryDate().before(o1.getSignerHistoryDate()) ? 1 : -1;
 				}
 			});
+			model.addObject("signerChangeHistoryList", signerChangeHistory);
 			model.addObject("signerHistoryList", signerHistoryList);
 			model.addObject("user", user);
-			model.setViewName("egovframework/com/uss/ion/cmm/EgovSignerHistoryModal");
+			model.addObject("docId", docId);
+			model.setViewName("egovframework/com/uss/ion/cmm/EgovSignerLineHistoryModal");
 		}else{
 			model.setViewName("egovframework/com/uat/uia/EgovLoginUsr");
 		}
 		return model;
 	}
-	
+		
 	@RequestMapping("/recipienthistory.do")
 	public ModelAndView recipienthistory(HttpServletRequest request, HttpServletResponse response)throws Exception{
 		ModelAndView model = new ModelAndView();
@@ -534,20 +555,9 @@ public class EgovApprovalDocController {
         
         if(isAuthentication(request, response, loginVO)) {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
-
-			String userId = user.getUniqId();
 			String docId = request.getParameter("docId");
-			UserManageVO signer = userService.getUser(userId);
-//			log.debug("recipienthistory userId["+userId+"], docId["+docId+"]");
 			List<RecipientVO> recipientList = recipientService.getRecipientList(docId);
-//			log.debug("recipienthistory recipientList["+recipientList+"]");
-/*
-			Collections.sort(recipientList, new Comparator<Recipient>() {
-				public int compare(Recipient o1, Recipient o2) {
-					return o2.getRecpSeq() - o1.getRecpSeq();
-				}
-			});
- */
+
 			if(recipientList != null){
 				Map<String, String> recpUserIDMap = new HashMap<String, String>();
 				List<String> userIDList = new ArrayList<String>();
@@ -565,19 +575,15 @@ public class EgovApprovalDocController {
 						userIDList.add(recpUserId);
 					}
 				}
-//				log.debug("recipienthistory recpUserIDMap["+recpUserIDMap+"], userIDList["+userIDList+"]");
 				if(recpUserIDMap.size() > 0){
 					List<UserManageVO> userList = userService.getUserList(userIDList);
-//					log.debug("recipienthistory userList["+userList+"]");
 					
 					for(int i=0; i<recipientList.size(); i++){
 						RecipientVO recipient = recipientList.get(i);
 						String recpUserId = (String)recpUserIDMap.get(recipient.getRecpId());
-//						log.debug("recipienthistory recipientList["+i+"] recipient["+recipient+"], recpUserId["+recpUserId+"]");
 						if(recpUserId != null && userList != null){
 							for(int j=0; j < userList.size(); j++){
 								UserManageVO recpUser = (UserManageVO)userList.get(j);
-//								log.debug("recipienthistory recipientList["+i+"] userList["+j+"] recpuser.getUserId()["+recpUser.getUserId()+"], recpUser["+recpUser+"]");
 								if(recpUserId.equals(recpUser.getUniqId())){
 									PositionVO vo = posiService.getPosition(recpUser.getPositionId());
 									String posiNm = null;
@@ -589,11 +595,9 @@ public class EgovApprovalDocController {
 								}
 							}
 						}
-//						log.debug("recipienthistory recipientList["+i+"], recipient["+recipient+"]");
 					}
 				}
 			}
-//			log.debug("recipienthistory recipientList["+recipientList+"]");
 			model.addObject("recipientList", recipientList);
 			model.addObject("user", user);
 			model.setViewName("egovframework/com/uss/ion/cmm/EgovRecipientHistoryModal");
@@ -602,16 +606,81 @@ public class EgovApprovalDocController {
 		}
 		return model;
 	}
+	@RequestMapping("/attachmentHistory.do")
+	public ModelAndView attachmentHistory(HttpServletRequest request, HttpServletResponse response)throws Exception{
+		ModelAndView model = new ModelAndView();
+		LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
+		
+		if(isAuthentication(request, response, loginVO)) {
+			UserManageVO user = userService.getUser(loginVO.getUniqId());
+			String docId = request.getParameter("docId");
+			List<AttachFileVO> attachmentList = attachFileService.getAttachFileListHistoryByDocId(docId);
+			
+			model.addObject("attachmentList", attachmentList);
+			model.addObject("user", user);
+			model.setViewName("egovframework/com/uss/ion/cmm/EgovattachmentHistoryModal");
+		}else{
+			model.setViewName("egovframework/com/uat/uia/EgovLoginUsr");
+		}
+		return model;
+	}
+	
+	@RequestMapping("/documentEditor.do")
+	public ModelAndView documentEditor(HttpServletRequest request, HttpServletResponse response)throws Exception{
+		ModelAndView model = new ModelAndView();
+        LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
+        
+        if(isAuthentication(request, response, loginVO)) {
+            UserManageVO user = userService.getUser(loginVO.getUniqId());
+            String docId = request.getParameter("docId");
+            String action = request.getParameter("action");
+            int docVersion = Integer.parseInt(request.getParameter("docVersion"));
+            Doc doc = approvalDocService.getDoc(docId);
+            doc.setDocVersion(docVersion);
+            String docBody = signerService.getDocForView(doc);
+            
+			model.addObject("user", user);
+			model.addObject("docBody", docBody);
+			model.addObject("doc", doc);
+			model.addObject("action", action);
+			model.setViewName("egovframework/com/uss/ion/cmm/EgovDocumentEditorPopup");
+		}else{
+			model.setViewName("egovframework/com/uat/uia/EgovLoginUsr");
+		}
+		return model;
+	}
+	
+	@RequestMapping("/deleteTmpDocument.do")
+	public void deleteTmpDocument(HttpServletRequest request, HttpServletResponse response)throws Exception{
+		String docId = request.getParameter("docId");
+		Doc doc = approvalDocService.getDoc(docId);
+		int docVersion = doc.getDocVersion()+1;
+		doc.setDocVersion(docVersion);
+		
+		PathUtil.deleteTmpFile(doc);
+		
+	}
+	
+	@RequestMapping("/saveDocument.do")
+	public void saveDocument(HttpServletRequest request, HttpServletResponse response)throws Exception{
+		String docId = request.getParameter("docId");
+		Doc doc = approvalDocService.getDoc(docId);
+		String docBody = request.getParameter("docBody");
+		int docVersion = doc.getDocVersion()+1;
+		//docBody를 임시파일로 저장 
+		//이후 임시파일 검색해서 있으면 버전 up해서 정보 변경하고 파일 위치변경?
+		doc.setDocVersion(docVersion);
+		PathUtil.createTmpDocFile(doc, docBody);
+	}
 	
 	@RequestMapping("/merge.do")
 	public ModelAndView merge(HttpServletRequest request, HttpServletResponse response)throws Exception{
 		// @TODO must get the user'id from the authentication Info.
-		String userId = request.getParameter("userId");
 		String type = request.getParameter("type");
 		String targetId = request.getParameter("targetId"); 
 		
-		Doc doc = requestUtilService.getDoc(request);
-		List<SignerVO> signerList = requestUtilService.getSignerList(request);
+		Doc doc = requestUtilService.getDoc(request, null);
+		List<SignerVO> signerList = requestUtilService.getSignerList(request, null, null, 0);
 		
 		String content = "";
 		if(type == null || type.equals("sign")){
@@ -624,52 +693,109 @@ public class EgovApprovalDocController {
 	}
 	
 	@RequestMapping("/approved.do")
-	public ModelAndView approved(HttpServletRequest request, HttpServletResponse response)throws Exception{
+	public String approved(HttpServletRequest request, HttpServletResponse response)throws Exception{
 		// @TODO must get the user'id from the authentication Info.
-		String userId = request.getParameter("userId");
-		String formId = request.getParameter("formId");
-		String docId = request.getParameter("docId");
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
+        String url = null;
         
-		UserManageVO approver = userService.getUser(loginVO.getUniqId());
+        if (isAuthentication(request, response, loginVO)) {
+        	String userId = request.getParameter("userId");
+        	String formId = request.getParameter("formId");
+        	String docId = request.getParameter("docId");
+        	String preAttachFileListJson = null;
+        	String editFlag = request.getParameter("editFlag");
+        	String docType = request.getParameter("docType");
+        	int docVersion = 1;
+			UserManageVO approver = userService.getUser(loginVO.getUniqId());
+			
+			Doc doc = approvalDocService.getDoc(docId);
+			if(doc == null){
+				throw new Exception("can not find the doc info["+docId+"]");
+			}
+			
+			if(editFlag.equalsIgnoreCase("true")){
+				docVersion = doc.getDocVersion()+1;
+				doc.setDocVersion(docVersion);
+				approvalDocService.updateDoc(doc);
+				PathUtil.moveFile(doc);
+			}else{
+				docVersion = doc.getDocVersion();
+			}
+			
+			List<SignerVO> signerList = requestUtilService.getSignerList(request, docId, approver.getUniqId(), docVersion);
+			String docBody = signerService.getDocForView(doc);
+			List<RecipientVO> recipientList = recipientService.getRecipientList(docId);
+			Map parameterMap = requestUtilService.getParameterMap(request);
+			String opinion = request.getParameter("opinion");
+			setOpinion(signerList, userId, opinion);
+			
+			List<AttachFileVO> oldAttachList = attachFileService.getAttachFileListByDocId(doc.getDocID());
+			List<AttachFileVO> newAttachList = null;
+			if (request instanceof MultipartHttpServletRequest) {
+	            opinion = URLDecoder.decode(opinion, "UTF-8");
+	            setOpinion(signerList, userId, opinion);
+	            
+	            newAttachList = requestUtilService.getAttachFileList((MultipartHttpServletRequest)request, doc.getDocID());
+	            preAttachFileListJson = request.getParameter("preAttachedFileList");
+	            if(preAttachFileListJson.length() > 2){
+	            	List<String> preAttachFileListString = signerService.getPreAttachedFileIdList(preAttachFileListJson);
+	            	for(int i=0; i<preAttachFileListString.size(); i++){
+		            	AttachFileVO preAttachFileList = new AttachFileVO();
+		            	preAttachFileList.setAttachID(preAttachFileListString.get(i));
+		            	newAttachList.add(preAttachFileList);
+	            	}//end of for
+	            }
+			}else{
+				setOpinion(signerList, userId, opinion);
+				newAttachList = requestUtilService.getAttachList(request, doc);
+			}
+			makeChangedAttachmentList(oldAttachList, newAttachList, userId);
+			
+			FormVO form = formService.getForm(formId);
+			if(form == null){
+				throw new Exception("can not find the form info["+formId+"]");
+			}
+			ApprovalContext approvalContext = new ApprovalContext(doc, signerList, newAttachList, recipientList);
+			signerService.approveForApprove(approver, approvalContext, docBody, parameterMap, preAttachFileListJson);
 		
-		Doc doc = approvalDocService.getDoc(docId);
-		if(doc == null){
-			throw new Exception("can not find the doc info["+docId+"]");
+			url = "forward:/approvalDocPageList.do?docType="+ docType;
+        }
+        return url;
+	}
+	
+	public void makeChangedAttachmentList(List<AttachFileVO> oldAttachList, List<AttachFileVO> newAttachList, String userId) throws Exception{
+		for(int i=oldAttachList.size()-1; i>=0; i--){
+			for(int j=newAttachList.size()-1; j>=0; j--){
+				if(oldAttachList.get(i).getAttachID().equalsIgnoreCase(newAttachList.get(j).getAttachID())){
+					oldAttachList.remove(i);
+					newAttachList.remove(j);
+					break;
+				}
+			}//end of for newAttach
+		}//end of for orgAttach
+		//Action:delete 
+		for(AttachFileVO oldAttach : oldAttachList){
+			if(!(oldAttach.equals(null))){
+				oldAttach.setAttachDateTime(new Date());
+				oldAttach.setAttachSignerId(userId);
+				oldAttach.setAttachAction("delete");
+				attachFileService.insertChangedAttachFile(oldAttach);
+			}
 		}
-		
-		List<SignerVO> signerList = requestUtilService.getSignerList(request);
-		String docBody = requestUtilService.getDocBody(request);
-		List<RecipientVO> recipientList = requestUtilService.getRecipientList(request);
-		List<AttachFileVO> attachList = requestUtilService.getAttachList(request, doc);
-		Map parameterMap = requestUtilService.getParameterMap(request);
-		
-		String opinion = request.getParameter("opinion");
-		setOpinion(signerList, userId, opinion);
-		
-		FormVO form = formService.getForm(formId);
-		if(form == null){
-			throw new Exception("can not find the form info["+formId+"]");
+		//Action:add
+		for(AttachFileVO newAttach : newAttachList){
+			if(!(newAttach.equals(null))){
+				newAttach.setAttachDateTime(new Date());
+				newAttach.setAttachSignerId(userId);
+				newAttach.setAttachAction("add");
+				attachFileService.insertChangedAttachFile(newAttach);
+			}
 		}
-		ApprovalContext approvalContext = new ApprovalContext(doc, signerList, attachList, recipientList);
-		File docFile = signerService.approveForApprove(approver, approvalContext, docBody, parameterMap);
-		
-		docBody = FileUtils.readFileToString(docFile, "utf-8");
-		
-		ModelAndView model = new ModelAndView();
-		model.addObject("approver", approver);
-		model.addObject("doc", doc);
-		model.addObject("docBody", docBody);
-		model.addObject("signerList", signerList);
-		model.setViewName("egovframework/com/uss/ion/apv/EgovWaitList");
-		return model;
 	}
 	
 	@RequestMapping("/rejected.do")
 	public ModelAndView rejected(HttpServletRequest request, HttpServletResponse response)throws Exception{
 		// @TODO must get the user'id from the authentication Info.
-		String userId = request.getParameter("userId");
-		String formId = request.getParameter("formId");
 		String docId = request.getParameter("docId");
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
 		UserManageVO rejector = userService.getUser(loginVO.getUniqId());
@@ -689,14 +815,19 @@ public class EgovApprovalDocController {
 		model.addObject("doc", doc);
 		model.addObject("docBody", docBody);
 		model.setViewName("egovframework/com/uss/ion/apv/EgovWaitList");
+
+		String editFlag = request.getParameter("editFlag");
+		if(editFlag.equalsIgnoreCase("true")){
+			int docVersion = doc.getDocVersion()+1;
+			doc.setDocVersion(docVersion);
+			PathUtil.deleteTmpFile(doc);
+		}
 		return model;
 	}
 
     @RequestMapping("/hold.do")
     public ModelAndView hold(HttpServletRequest request, HttpServletResponse response)throws Exception{
         // @TODO must get the user'id from the authentication Info.
-        String userId = request.getParameter("userId");
-        String formId = request.getParameter("formId");
         String docId = request.getParameter("docId");
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
         UserManageVO holder = userService.getUser(loginVO.getUniqId());
@@ -708,7 +839,6 @@ public class EgovApprovalDocController {
             throw new Exception("can not find the doc info["+docId+"]");
         }
         File docFile = signerService.approveForHold(holder, doc, opinion);
-        
         String docBody = FileUtils.readFileToString(docFile, "utf-8");
         
         ModelAndView model = new ModelAndView();
@@ -716,6 +846,13 @@ public class EgovApprovalDocController {
         model.addObject("doc", doc);
         model.addObject("docBody", docBody);
         model.setViewName("egovframework/com/uss/ion/apv/EgovWaitList");
+        
+        String editFlag = request.getParameter("editFlag");
+        if(editFlag.equalsIgnoreCase("true")){
+        	int docVersion = doc.getDocVersion()+1;
+        	doc.setDocVersion(docVersion);
+        	PathUtil.deleteTmpFile(doc);
+        }
         return model;
     }
     
@@ -906,17 +1043,6 @@ public class EgovApprovalDocController {
 				model.setViewName("egovframework/com/uss/ion/apv/EgovPassboxList");
 			}
 			page.setTotalRecordCount(totalCount);
-//			System.out.println("page.getCurrentPageNo() : " + page.getCurrentPageNo());
-//			System.out.println("page.getFirstPageNoOnPageList() : " + page.getFirstPageNoOnPageList());
-//			System.out.println("page.getFirstRecordIndex() : " + page.getFirstRecordIndex());
-//			System.out.println("page.getFirstRecordIndexOnCurrentPage() : " + page.getFirstRecordIndexOnCurrentPage());
-//			System.out.println("page.getLastPageNoOnPageList() : " + page.getLastPageNoOnPageList());
-//			System.out.println("page.getLastRecordIndex() : " + page.getLastRecordIndex());
-//			System.out.println("page.getLastRecordIndexOnCurrentPage() : " + page.getLastRecordIndexOnCurrentPage());
-//			System.out.println("page.getPageSize() : " + page.getPageSize());
-//			System.out.println("page.getRecordCountPerPage() : " + page.getRecordCountPerPage());
-//			System.out.println("page.getTotalPageCount() : " + page.getTotalPageCount());
-//			System.out.println("page.getTotalRecordCount() : " + page.getTotalRecordCount());
 
 			model.addObject("page",page);
 	    	model.addObject("user",user);
@@ -957,14 +1083,6 @@ public class EgovApprovalDocController {
 			String userId = user.getUniqId();
 			String formId = request.getParameter("selectformID");
 			String formType = request.getParameter("selectformType");
-			
-			Doc doc = requestUtilService.getDoc(request);
-			if(doc.getDocID() == null) {
-				String docId = idgenService.getNextStringId();
-				doc.setDocID(docId);
-			}
-			
-			doc.setFormId(formId);
 			FormVO form = formService.getForm(formId);
 			if(form == null){
 				throw new Exception("can not find the form info["+formId+"]");
@@ -987,7 +1105,7 @@ public class EgovApprovalDocController {
 			String docBody = signerService.createDraftDoc(form, drafter, null, null);
 			
 			model.addObject("drafter", drafter);
-			model.addObject("doc", doc);
+			model.addObject("formId", formId);
 			model.addObject("docBody", docBody);
 			model.addObject("signerList", signerList);
 			model.addObject("labelTree", labelTree.getModel().get("labelList"));
@@ -1028,7 +1146,7 @@ public class EgovApprovalDocController {
 			String docBody = null;
 			Doc orgDoc =  approvalDocService.getDoc(doc.getDocOrgId());
 
-			if(doc.getDocType().equalsIgnoreCase("DT03")){
+			if(doc.getDocType().equalsIgnoreCase(ApprovalConstants.DOC_TYPE_INCOMING)){
 				docBody = signerService.getDocForView(orgDoc);
 			}else {
 				docBody = signerService.getWriteDocBody(doc);
@@ -1044,11 +1162,14 @@ public class EgovApprovalDocController {
 			
 			List<RecipientVO> recipientList = recipientService.getRecipientList(docId);
 			LabelVO label = labelService.getLabel(doc.getLbelId());
-	
 			UserManageVO drafter = userService.getUser(userId);
-			
 			ModelAndView labelTree = treeList(userId);
 			
+			if(doc.getDocType().equalsIgnoreCase(ApprovalConstants.DOC_TYPE_INCOMING)){
+				model.setViewName("egovframework/com/uss/ion/apv/EgovApprRedraftForIncoming");
+			}else{
+				model.setViewName("egovframework/com/uss/ion/apv/EgovApprRedraft");
+			}
 			model.addObject("drafter", drafter);
 			model.addObject("doc", doc);
 			model.addObject("docBody", docBody);
@@ -1061,7 +1182,6 @@ public class EgovApprovalDocController {
 			model.addObject("recipientList",recipientList);
 			model.addObject("label",label);
 			model.addObject("user", user);
-			model.setViewName("egovframework/com/uss/ion/apv/EgovApprRedraft");
 		}else{
 			model.setViewName("egovframework/com/uat/uia/EgovLoginUsr");
 		}
@@ -1094,7 +1214,7 @@ public class EgovApprovalDocController {
 			String docBody = null;
 			Doc orgDoc = approvalDocService.getDoc(doc.getDocOrgId());
 
-			if(doc.getDocType().equalsIgnoreCase("DT03")){
+			if(doc.getDocType().equalsIgnoreCase(ApprovalConstants.DOC_TYPE_INCOMING)){
 				docBody = signerService.getDocForView(orgDoc);
 			}else {
 				docBody = signerService.getDocForView(doc);
@@ -1205,8 +1325,8 @@ public class EgovApprovalDocController {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
             
 			String userId = user.getUniqId();
+			String formId = null;
 			String orgdocId = request.getParameter("orgdocId");
-			String selectformID = request.getParameter("selectformID");
 			
 			Doc orgDoc = approvalDocService.getDoc(orgdocId);
 			if(orgDoc == null){
@@ -1214,40 +1334,27 @@ public class EgovApprovalDocController {
 			}
 			
 			UserManageVO receiver = userService.getUser(userId);
-			Doc doc = requestUtilService.getDocForReceive(request);
 			
 			RecipientVO recipient = recipientService.getRecipient(orgdocId, receiver.getOrgnztId());
 			if (recipient == null){
 				throw new Exception("can not find the original doc's recipient info["+orgdocId+","+receiver.getOrgnztId()+"]");
 			}
-			
 			if ((recipient.getRecpRecpDt() != null) && (recipient.getRecpRecpUserId() != null)) { 
 				throw new Exception("This document.is already registered.");
 			}
 			
-			if(doc.getDocID() == null) {
-				String docId = idgenService.getNextStringId();
-				
-				doc.setDocID(docId);
-				doc.setDocTitle(orgDoc.getDocTitle());
-			}
-			
+			String selectformID = request.getParameter("selectformID");
 			if(!StringUtils.isEmpty(selectformID)){
-				doc.setFormId(selectformID);
+				formId = selectformID;
+				orgDoc.setFormId(selectformID);
 			}else{
-				doc.setFormId(orgDoc.getFormId());
-			}
+				formId = orgDoc.getFormId();
+			}			
 			
 			FormVO form = formService.getForm(orgDoc.getFormId());
 			if(form == null){
 				throw new Exception("can not find the original doc's form info["+orgDoc.getFormId()+"]");
 			}
-			
-			if ((orgDoc.getFormId() == null) || ApprovalConstants.NULL_ID_STRING.equals(orgDoc.getFormId())){
-				orgDoc.setFormId(doc.getFormId());
-			}
-			
-			LabelVO label = labelService.getLabel(doc.getLbelId());
 			
 			List<SignerVO> signerList = signerService.getDefaultReceiveSignerList(form, receiver);
 			Collections.sort(signerList, new Comparator<SignerVO>() {
@@ -1268,11 +1375,10 @@ public class EgovApprovalDocController {
 			ModelAndView labelTree = treeList(userId);
 			
 			model.addObject("receiver", receiver);
-			model.addObject("doc", doc);
 			model.addObject("orgDoc", orgDoc);
+			model.addObject("formId", formId);
 			model.addObject("docBody", docBody);
 			model.addObject("signerList", signerList);
-			model.addObject("label", label);
 			model.addObject("labelTree",labelTree.getModel().get("labelList"));
 			model.addObject("userAuth",labelTree.getModel().get("userAuth"));
 			model.addObject("deptAuth",labelTree.getModel().get("deptAuth"));
@@ -1289,26 +1395,24 @@ public class EgovApprovalDocController {
 	@RequestMapping("/received.do")
 	public ModelAndView received(HttpServletRequest request, HttpServletResponse response)throws Exception{
 		// @TODO must get the user'id from the authentication Info.
-//		String userId = request.getParameter("userId");
 		String formId = request.getParameter("formId");
-		String docId = request.getParameter("docId");
-		String orgdocId = request.getParameter("orgdocId");
-		
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
-        String userId = loginVO.getUniqId();
-		UserManageVO receiver = userService.getUser(userId);
+		UserManageVO receiver = userService.getUser(loginVO.getUniqId());
 		
-		Doc doc = requestUtilService.getDocForReceive(request);
-		doc.setDocOrgId(orgdocId);
+		String orgdocId = request.getParameter("orgdocId");
+		Doc orgDoc = approvalDocService.getDoc(orgdocId);
 		
-		List<SignerVO> signerList = requestUtilService.getSignerList(request);
+		String docId = idgenService.getNextStringId();
+		Doc doc = requestUtilService.getDocForReceive(request, docId, orgDoc);
+
+		List<SignerVO> signerList = requestUtilService.getSignerList(request, docId, receiver.getUniqId(), doc.getDocVersion());
 		String docBody = requestUtilService.getDocBody(request);
-		List<RecipientVO> recipientList = requestUtilService.getRecipientList(request);
+		List<RecipientVO> recipientList = requestUtilService.getRecipientList(request, docId);
 		List<AttachFileVO> attachList = requestUtilService.getAttachListFromOrgDoc(request, doc);
 		Map parameterMap = requestUtilService.getParameterMap(request);
 		
 		String opinion = request.getParameter("opinion");
-		setOpinion(signerList, userId, opinion);
+		setOpinion(signerList, receiver.getUniqId(), opinion);
 		
 		FormVO form = formService.getForm(formId);
 		if(form == null){
@@ -1329,9 +1433,43 @@ public class EgovApprovalDocController {
 		return model;
 	}
 	
+	@RequestMapping("/redraftForIncoming.do")
+	public String redraftForIncoming(HttpServletRequest request, HttpServletResponse response)throws Exception{
+		// @TODO must get the user'id from the authentication Info.
+		LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
+		UserManageVO user = userService.getUser(loginVO.getUniqId());
+		String url = null;
+		
+		if (isAuthentication(request, response, loginVO)) {
+			String docType = request.getParameter("docType");
+			String docId = request.getParameter("docId");
+			String labelId = request.getParameter("labelId");
+			String preAttachFileListJson = request.getParameter("preAttachedFileList");
+			Doc doc = approvalDocService.getDoc(docId);
+			doc.setLbelId(labelId);
+			
+			List<SignerVO> signerList = requestUtilService.getSignerList(request, docId, user.getUniqId(), doc.getDocVersion());
+			String docBody = requestUtilService.getDocBody(request);
+			Map parameterMap = requestUtilService.getParameterMap(request);
+			
+			String opinion = request.getParameter("opinion");
+			setOpinion(signerList, user.getUniqId(), opinion);
+			
+			FormVO form = formService.getForm(doc.getFormId());
+			if(form == null){
+				throw new Exception("can not find the form info["+doc.getFormId()+"]");
+			}
+			
+			ApprovalContext approvalContext = new ApprovalContext(doc, signerList, null, null);
+			signerService.approveForDraft(user, approvalContext, docBody, parameterMap, preAttachFileListJson);
+			
+			url = "forward:/approvalDocPageList.do?docType="+ docType;
+		}
+		return url;
+	}
+	
 	@RequestMapping("/view.do")
 	protected ModelAndView view(HttpServletRequest request,HttpServletResponse response) throws Exception{
-//		String userId = request.getParameter("userId");
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
         String userId = loginVO.getUniqId();
 		ModelAndView model = new ModelAndView();
@@ -1347,7 +1485,6 @@ public class EgovApprovalDocController {
 	
 	@RequestMapping("/register.do")
 	protected ModelAndView register(HttpServletRequest request,HttpServletResponse response) throws Exception{
-//		String userId = request.getParameter("userId");
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
         String userId = loginVO.getUniqId();
         
@@ -1436,11 +1573,8 @@ public class EgovApprovalDocController {
 	public void readFilesUpload(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String docID = (String) request.getParameter("docId");
 		String attachId = (String) request.getParameter("attachId");
-        LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
-        String userId = loginVO.getUniqId();
-//		String userId = (String) request.getParameter("userId");
-		
-        AttachFileVO attach = new AttachFileVO();
+
+		AttachFileVO attach = new AttachFileVO();
         attach.setAttachID(attachId);
         
 		attach = attachFileService.getAttachFileByAttachId(attach);
@@ -1545,7 +1679,6 @@ public class EgovApprovalDocController {
 	
 	@RequestMapping("/registeredIncoming.do")
 	public String registeredIncoming(HttpServletRequest request,HttpServletResponse response)throws Exception{
-		ModelAndView model = new ModelAndView();
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
         
         String url = null;
@@ -1553,7 +1686,7 @@ public class EgovApprovalDocController {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
 			
 			RegisterIncomingVO incoming = requestUtilService.getRegisterIncoming(request, user);
-			Doc doc = signerService.registerIncoming(incoming, user);
+			signerService.registerIncoming(incoming, user);
 	        url = "forward:/approvalDocPageList.do?docType=incoming";
 		}
 		return url;
@@ -1591,7 +1724,6 @@ public class EgovApprovalDocController {
 	
 	@RequestMapping("/registeredInternal.do")
 	public String registeredInternal(HttpServletRequest request,HttpServletResponse response)throws Exception{
-		ModelAndView model = new ModelAndView();
         LoginVO loginVO = (LoginVO) EgovUserDetailsHelper.getAuthenticatedUser();
         String url = null;
         
@@ -1601,12 +1733,11 @@ public class EgovApprovalDocController {
 			RegisterInternalVO internal = requestUtilService.getRegisterInternal(request, user);
 			internal.setDocType(ApprovalConstants.DOC_TYPE_INTERNAL);
 			
-			Doc doc = signerService.registerInternal(internal, user);
+			signerService.registerInternal(internal, user);
 			String labelId = request.getParameter("register_selectlabelId");
 			String labelNm = request.getParameter("register_selectlabelNm");
 	        url = "forward:/approvalDocPageList.do?docType=label&labelId=" + labelId + "&labelNm=" + labelNm;
         }        
-
 		return url;
 	}
 	
@@ -1742,11 +1873,8 @@ public class EgovApprovalDocController {
         
         if(isAuthentication(request, response, loginVO)) {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
-            
-			String userId = user.getUniqId();
 			String orgdocId = request.getParameter("orgdocId");
 			String passdeptId = request.getParameter("passdeptId");
-//			log.debug("pass orgdocId["+orgdocId+"], passdeptId["+passdeptId+"]");
 			
 			Doc orgDoc = approvalDocService.getDoc(orgdocId);
 			if(orgDoc == null) {

@@ -49,4 +49,26 @@ public interface EgovAttachFileService {
 	public void deleteAttachFile(AttachFileVO fileInf) throws Exception;
 
 	public String getNextAttatchFileId() throws Exception;
+	
+	/**
+	 * Insert information for changed attached file
+	 * @param fileInf
+	 * @throws Exception
+	 */
+	public void insertChangedAttachFile(AttachFileVO fileInf) throws Exception;
+	
+	/**
+	 * Delete information for changed attached file
+	 * @param fileInf
+	 * @throws Exception
+	 */
+	public void deleteChangedAttachFile(AttachFileVO fileInf) throws Exception;
+	
+	/**
+	 * Retrieve changed attached file information with given attach id
+	 * @param fileInf
+	 * @return AttachFileVO
+	 * @throws Exception
+	 */
+	public List<AttachFileVO> getAttachFileListHistoryByDocId(String docID) throws Exception;
 }

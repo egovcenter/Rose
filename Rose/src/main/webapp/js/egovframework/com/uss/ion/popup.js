@@ -93,7 +93,39 @@ function opinionView(opinion){
 			}
 	);
 }
-
+function displayAttachmentHistory(){
+	$("#div_popup").load(APPROVAL_CONTEXT+'/attachmentHistory.do', 
+			{docId: docId},
+			function(){
+				if (typeof(display_attachmenthistory_load) != "undefined") {
+					display_attachmenthistory_load();
+				}
+				$("#div_popup").show();
+			}
+	);
+}
+function displayApprovalHistory(){
+	$("#div_popup").load(APPROVAL_CONTEXT+'/approvalHistory.do', 
+			{userId: userId, docId: docId},
+			function(){
+				if (typeof(display_approvalHistory_load) != "undefined") {
+					display_approvalHistory_load();
+				}
+				$("#div_popup").show();
+			}
+	);
+}
+function displayRecipientHistory(){
+	$("#div_popup").load(APPROVAL_CONTEXT+'/recipienthistory.do', 
+			{userId: userId, docId: docId},
+			function(){
+				if (typeof(display_recipienthistory_load) != "undefined") {
+					display_recipienthistory_load();
+				}
+				$("#div_popup").show();
+			}
+	);
+}
 function openLabelPopup(labelId,labelNm){
 	var labelNm = $("#selectlabelNm").val();
 	var labelId = $("#selectlabelId").val();
@@ -106,5 +138,24 @@ function openLabelPopup(labelId,labelNm){
 		$("#div_popup").show();
 	}
 	);
+}
+function documentPopup(action, version) {
+	var popupTitle = "documentEditor";
+	var popupOption = "width=1300, height=900, resizable=yes, scrollbars=yes, status=no;";
+	window.open("", popupTitle, popupOption);
+	
+	$("#popupForm").attr("target", popupTitle);
+	if(action == "edit"){
+		$("#action").val("edit");
+	}else if(action == "view"){
+		$("#action").val("view");
+	}
+	$("#docVersion").val(version);
+	$("#popupForm").submit();
+}
+function changeDocument(newDocBody) {
+	$("#editFlag").val(true);
+	$("#draft_body").html(newDocBody);
+	settingDocumentContent();
 }
 /* 20160329_SUJI.H */

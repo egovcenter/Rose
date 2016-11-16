@@ -59,4 +59,18 @@ public class EgovAttachFileServiceImpl extends EgovAbstractServiceImpl implement
 	    return idGnrService.getNextStringId();
 	}
 	
+	public void insertChangedAttachFile(AttachFileVO fileInf) throws Exception {
+		attachFileDAO.insertChangedAttachFile(fileInf);
+	}
+	
+	public void deleteChangedAttachFile(AttachFileVO fileInf) throws Exception {
+		attachFileDAO.deleteChangedAttachFile(fileInf);
+	}
+	
+	public List<AttachFileVO> getAttachFileListHistoryByDocId(String docID) throws Exception {
+		AttachFileVO fileInf = new AttachFileVO();
+		fileInf.setDocID(docID);
+		return attachFileDAO.selectAttachFileListHistoryByDocId(fileInf);
+	}
+	
 }

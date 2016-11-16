@@ -5,12 +5,22 @@
 	<typeAlias alias="AttachFileVO" type="egovframework.com.uss.ion.apv.service.AttachFileVO" />
 
 	<resultMap id="AttachFileList"  class="egovframework.com.uss.ion.apv.service.AttachFileVO">
-		<result property="attachID" 	column="ATTA_ID" 	columnIndex="1" />
-		<result property="docID" 		column="DOC_ID"		columnIndex="2" />
-		<result property="attachNm"		column="ATTA_NM"	columnIndex="3" />
-		<result property="attachSeq"	column="ATTA_SEQ"	columnIndex="4" />
-		<result property="attachSize"	column="ATTA_SIZE"	columnIndex="5" />
-		<result property="attachType"	column="ATTA_TYPE"	columnIndex="6" />
+		<result property="attachID" 		column="ATTA_ID" 		columnIndex="1" />
+		<result property="docID" 			column="DOC_ID"			columnIndex="2" />
+		<result property="attachNm"			column="ATTA_NM"		columnIndex="3" />
+		<result property="attachSeq"		column="ATTA_SEQ"		columnIndex="4" />
+		<result property="attachSize"		column="ATTA_SIZE"		columnIndex="5" />
+		<result property="attachType"		column="ATTA_TYPE"		columnIndex="6" />
+	</resultMap>
+	
+	<resultMap id="ChangedAttachFileList"  class="egovframework.com.uss.ion.apv.service.AttachFileVO">
+		<result property="attachID" 			column="ATTA_ID" 		columnIndex="1" />
+		<result property="docID" 				column="DOC_ID"			columnIndex="2" />
+		<result property="attachNm"				column="ATTA_NM"		columnIndex="3" />
+		<result property="attachDateTime"		column="ATTA_DATETIME"	columnIndex="4" />
+		<result property="attachSignerId"		column="ATTA_SIGNER_ID"	columnIndex="5" />
+		<result property="attachAction"			column="ATTA_ACTION"	columnIndex="6" />
+		<result property="attachSignerNm"		column="ATTA_SIGNER_NM"	columnIndex="7" />
 	</resultMap>
 	
 	<select id="FileAttachDAO.selectAttachFileListByDocId" parameterClass="AttachFileVO" resultMap="AttachFileList">
@@ -47,4 +57,31 @@
 				ATTA_ID = #attachID#			
 		]]>
 	</delete>
+	
+	<insert id="FileAttachDAO.insertChangedAttachFile" parameterClass="AttachFileVO" >
+		<![CDATA[
+			INSERT INTO ATTACH_CHANGE_INFO
+				(ATTA_ID, DOC_ID, ATTA_DATETIME, ATTA_SIGNER_ID, ATTA_NM, ATTA_ACTION)
+			VALUES
+				( #attachID#, #docID#, #attachDateTime#, #attachSignerId#, #attachNm#, #attachAction#)			
+		]]>
+	</insert>
+	
+	<delete id="FileAttatchDAO.deleteChangedAttachFile" parameterClass="AttachFileVO">
+		<![CDATA[
+			DELETE FROM ATTACH_CHANGE_INFO
+			WHERE
+				ATTA_ID = #attachID#			
+		]]>
+	</delete>
+	
+	<select id="FileAttachDAO.selectAttachFileListHistoryByDocId" parameterClass="AttachFileVO" resultMap="ChangedAttachFileList">
+		<![CDATA[
+			SELECT 
+				aci.ATTA_ID, aci.DOC_ID, aci.ATTA_DATETIME, aci.ATTA_NM, aci.ATTA_ACTION, aci.ATTA_SIGNER_ID,
+				(SELECT USER_NM FROM COMTNEMPLYRINFO WHERE ESNTL_ID = aci.ATTA_SIGNER_ID) ATTA_SIGNER_NM
+			FROM ATTACH_CHANGE_INFO aci
+			WHERE DOC_ID = #docID#			
+		]]>
+	</select>
 </sqlMap>

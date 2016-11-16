@@ -12,6 +12,7 @@ var fileCountLimit = 10;
 var fileLengthLimit = 1024 * 1024 * 100; 
 var submitted = false;
 var delay = 1000;
+var textareaId = "content";
 
 function getItemFromObj(thisObj, readonly, type){
 	var id = $(thisObj).val();
@@ -420,6 +421,30 @@ function getSignerList(signerListId){
 	});
 	return signerList;
 }
+
+function convertSignState(state) {
+	var convertedState;
+
+	switch (state) {
+		case "SS00":
+			convertedState = "Processing";
+			break;
+		case "SS01":
+			convertedState = "Holding";
+			break;
+		case "SS02":
+			convertedState = "Reject";
+			break;
+		case "SS03":
+			convertedState = "Waiting";
+			break;
+		case "SS09":
+			convertedState = "Finishing";
+			break;
+	}
+	return convertedState;
+}
+
 function applySignerList(signerList, redraft){		
 	var signtable = $("#signer_list_table");
 	
@@ -455,7 +480,8 @@ function applySignerList(signerList, redraft){
 				newSignerTr.find(".signer_kind_text").text("Redraft");
 				break;
 		}	
-		newSignerTr.find(".signer_signState").text(signer.signerSignState);
+
+		newSignerTr.find(".signer_signstate").text(signer.signerSignState);
 		newSignerTr.find(".signer_userid").text(signer.signerUserId);
 		newSignerTr.find(".signer_signername").text(signer.signerSignerName);
 		newSignerTr.find(".signer_deptid").text(signer.signerDeptId);
@@ -463,7 +489,8 @@ function applySignerList(signerList, redraft){
 		newSignerTr.find(".signer_positionname").text(signer.signerPositionName);
 		newSignerTr.find(".signer_dutyname").text(signer.signerDutyName);
 		newSignerTr.find(".signer_opinion").text(signer.signerOpinion);
-		
+		newSignerTr.find(".signer_state_").text(convertSignState(signer.signerSignState));
+
 		/* 160307_SUJI.H */
 		var year = signer.signerSignDate.substring(24, 28);
 		var month = signer.signerSignDate.substring(4, 7);
@@ -482,7 +509,7 @@ function applySignerList(signerList, redraft){
 			case 'Dec'  : month = '12'; break;
 		}
 		var day = signer.signerSignDate.substring(8,10);
-		var time = signer.signerSignDate.substring(11, 19);
+		var time = signer.signerSignDate.substring(11, 16);
 		var sd = year + "-" + month + "-" + day + " " + time;
 		if (sd.trim() == '--') {
 			sd = "";
@@ -577,7 +604,7 @@ function applySignTable(){
 		url: APPROVAL_CONTEXT +"/merge.do",
 		dataType: 'html',
 		cache: false,
-		data:{"userId": userId, "docId": docId, "formId": formId, "type": "sign", "targetId": targetSignTableId, "signerList" : signerList4Json},
+		data:{"docId": docId, "formId": formId, "type": "sign", "targetId": targetSignTableId, "signerList" : signerList4Json},
 		success: function(data) {
 			mergetHtml(targetSignTableId, data); 
 		},
@@ -591,12 +618,15 @@ function applyIncomingSignTable(){
 	var targetSignTableId = "recv_sign";
 	var signerList = getSignerList(signerListTableId);
 	var signerList4Json = JSON.stringify(signerList);
+	if(docId == "no_doc_id"){
+		docId = orgdocId;
+	}
 	$.ajax({                        
 		type: "POST",
 		url: APPROVAL_CONTEXT +"/merge.do",
 		dataType: 'html',
 		cache: false,
-		data:{"userId": userId, "docId": docId, "formId": formId, "type": "sign", "targetId": targetSignTableId, "signerList" : signerList4Json},
+		data:{"docId": docId, "formId": formId, "type": "sign", "targetId": targetSignTableId, "signerList" : signerList4Json},
 		success: function(data) {
 			mergetHtml(targetSignTableId, data); 
 		},
@@ -647,7 +677,7 @@ function assignSignerLine(){
 	var signerList4Json = JSON.stringify(signerList);
 	
 	$("#div_popup").load(APPROVAL_CONTEXT+'/signerline.do', 
-			{userId: userId, docId: docId, formId: formId, signerList: signerList4Json, redraft: "false"},
+			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "false"},
 			function(){
 				if (typeof(user_selection_load) != "undefined") {
 					user_selection_load();
@@ -662,7 +692,7 @@ function assignSignerLine4Redraft(){
 	var signerList4Json = JSON.stringify(signerList);
 	
 	$("#div_popup").load(APPROVAL_CONTEXT+'/signerline.do', 
-			{userId: userId, docId: docId, formId: formId, signerList: signerList4Json, redraft: "true"},
+			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "true"},
 			function(){
 				if (typeof(user_selection_load) != "undefined") {
 					user_selection_load();
@@ -696,13 +726,7 @@ function opinionDisabled(type){
 	submitted = true;
 }
 
-function composeApprovalInfos(elementId) {
-	var opinion = document.getElementById("opinion").value;
-	var docBody = getBodyContent();
-	var signerList = getSignerList(signerListTableId);
-	var signerList4Json = JSON.stringify(signerList);
-	var recipientList = getRecipientList(recipientListTableId);
-	var recipientList4Json = JSON.stringify(recipientList);
+function composeApprovalInfos(elementId, action) {
 	var attachList = getAttachList();
 	if(attachList != null){
 		var attachList4Json = JSON.stringify(attachList);
@@ -710,122 +734,76 @@ function composeApprovalInfos(elementId) {
 		var attachListElem = "<input type=\"hidden\" name=\"attachList\" id=\"attachList\" value=\"" + encodedAttachList + "\" />";
 		$("#" + elementId).append(attachListElem);
 	}
-	var labelId = $("#selectlabelId").val();
-	var docnum = $("#draft_docnum").val();
-	var doc_slvl = $("input[name=doc_slvl]:checked").val();
-	
-	var docTitle = encodeURIComponent($("input[name=draft_title]").val());
-	var docTitleElem = "<input type=\"hidden\" name=\"draft_title\" id=\"draft_title\" value=\"" + docTitle + "\" />";
-	$("#" + elementId).append(docTitleElem);
-	
+
+	var signerList = getSignerList(signerListTableId);
+	var signerList4Json = JSON.stringify(signerList);
 	var encodedSignerList = encodeURIComponent(signerList4Json);
 	var signerListElem = "<input type=\"hidden\" name=\"signerList\" id=\"signerList\" value=\"" + encodedSignerList + "\" />";
 	$("#" + elementId).append(signerListElem);
 	
-	var encodedRecipientList = encodeURIComponent(recipientList4Json);
-	var recipientListElem = "<input type=\"hidden\" name=\"recipientList\" id=\"recipientList\" value=\"" + encodedRecipientList + "\" />";
-	$("#" + elementId).append(recipientListElem);
-	
-	var encodedDocBody = encodeURIComponent(docBody);
-	var docBodyElem = "<input type=\"hidden\" name=\"docBody\" id=\"docBody\" value=\"" + encodedDocBody + "\" />";
-	$("#" + elementId).append(docBodyElem);
-	
+	if(action == "draft"){
+		var docBody = getBodyContent(action);
+		var encodedDocBody = encodeURIComponent(docBody);
+		var docBodyElem = "<input type=\"hidden\" name=\"docBody\" id=\"docBody\" value=\"" + encodedDocBody + "\" />";
+		$("#" + elementId).append(docBodyElem);
+	}
+
+	var opinion = document.getElementById("opinion").value;
 	var encodedOpinion = encodeURIComponent(opinion);
 	var opinionElem = "<input type=\"hidden\" name=\"opinion\" id=\"opinion\" value=\"" + encodedOpinion + "\" />";
 	$("#" + elementId).append(opinionElem);
 	
-	var userIdElem = "<input type=\"hidden\" name=\"userId\" id=\"userId\" value=\"" + userId + "\" />";
-	$("#" + elementId).append(userIdElem);
-
-	var docIdElem = "<input type=\"hidden\" name=\"docId\" id=\"docId\" value=\"" + docId + "\" />";
-	$("#" + elementId).append(docIdElem);
-
-	var formIdElem = "<input type=\"hidden\" name=\"formId\" id=\"formId\" value=\"" + formId + "\" />";
-	$("#" + elementId).append(formIdElem);
+	if(action != "approve"){
+		var recipientList = getRecipientList(recipientListTableId);
+		var recipientList4Json = JSON.stringify(recipientList);
+		var encodedRecipientList = encodeURIComponent(recipientList4Json);
+		var recipientListElem = "<input type=\"hidden\" name=\"recipientList\" id=\"recipientList\" value=\"" + encodedRecipientList + "\" />";
+		$("#" + elementId).append(recipientListElem);
+		
+		var docTitle = encodeURIComponent($("input[name=draft_title]").val());
+		var docTitleElem = "<input type=\"hidden\" name=\"draft_title\" id=\"draft_title\" value=\"" + docTitle + "\" />";
+		$("#" + elementId).append(docTitleElem);
+		
+		var userIdElem = "<input type=\"hidden\" name=\"userId\" id=\"userId\" value=\"" + userId + "\" />";
+		$("#" + elementId).append(userIdElem);
 	
-	var labelIdElem = "<input type=\"hidden\" name=\"labelId\" id=\"labelId\" value=\"" + labelId + "\" />";
-	$("#" + elementId).append(labelIdElem);
+		var docIdElem = "<input type=\"hidden\" name=\"docId\" id=\"docId\" value=\"" + docId + "\" />";
+		$("#" + elementId).append(docIdElem);
 	
-	var docNumElem = "<input type=\"hidden\" name=\"draft_docnum\" id=\"draft_docnum\" value=\"" + docnum + "\" />";
-	$("#" + elementId).append(docNumElem);
-
-	var docSecurityLvlElem = "<input type=\"hidden\" name=\"doc_slvl\" id=\"doc_slvl\" value=\"" + doc_slvl + "\" />";
-	$("#" + elementId).append(docSecurityLvlElem);
+		var formIdElem = "<input type=\"hidden\" name=\"formId\" id=\"formId\" value=\"" + formId + "\" />";
+		$("#" + elementId).append(formIdElem);
+		
+		var labelId = $("#selectlabelId").val();
+		var labelIdElem = "<input type=\"hidden\" name=\"labelId\" id=\"labelId\" value=\"" + labelId + "\" />";
+		$("#" + elementId).append(labelIdElem);
+		
+		var docnum = $("#draft_docnum").val();
+		var docNumElem = "<input type=\"hidden\" name=\"draft_docnum\" id=\"draft_docnum\" value=\"" + docnum + "\" />";
+		$("#" + elementId).append(docNumElem);
+	
+		var doc_slvl = $("input[name=doc_slvl]:checked").val();
+		var docSecurityLvlElem = "<input type=\"hidden\" name=\"doc_slvl\" id=\"doc_slvl\" value=\"" + doc_slvl + "\" />";
+		$("#" + elementId).append(docSecurityLvlElem);
+	}
 }
 
 function draft_fn() {
-	composeApprovalInfos("attach");
+	composeApprovalInfos("attach", "draft");
 	var resultDocTypeElem = "<input type=\"hidden\" name=\"docType\" id=\"docType\" value=\"ongoing\" />";
 	$("#attach").append(resultDocTypeElem);
 	$("#attach").submit();
 }
 function redraft_fn(){
-	composeApprovalInfos("attach");
-	var resultDocTypeElem = "<input type=\"hidden\" name=\"docType\" id=\"docType\" value=\"ongoing\" />";
+	composeApprovalInfos("attach", "redraft");
+	var resultDocTypeElem = "<input type=\"hidden\" name=\"docType\" id=\"docType\" value=\"waiting\" />";
 	$("#attach").append(resultDocTypeElem);
 	$("#attach").submit();
 }
 function approve_fn(){
-	var opinion = document.getElementById("opinion").value;
-	var docBody = getBodyContent();
-	var signerList = getSignerList(signerListTableId);
-
-	var signerList4Json = JSON.stringify(signerList);
-	var recipientList = getRecipientList(recipientListTableId);
-	var recipientList4Json = JSON.stringify(recipientList);
-	var attachList = getAttachList();
-	var attachList4Json = JSON.stringify(attachList);
-	
-	var labelId = $("#selectlabelId").val();
-	var docnum = $("#draft_docnum").val();
-	var doc_slvl = $("input[name=doc_slvl]:checked").val();
-	
-	// TODO for other info, title, label, security, and so on. 
-	
-	$("#draft_form").submit(function(e){
-		var postData = $(this).serializeArray();
-		postData.push({"name" : "signerList", "value" : signerList4Json});
-		postData.push({"name" : "recipientList", "value" :  recipientList4Json});
-		postData.push({"name" : "attachList", "value" : attachList4Json});
-		postData.push({"name" : "docBody", "value" : docBody});
-		postData.push({"name" : "userId", "value" : userId});
-		postData.push({"name" : "docId", "value" : docId});
-		postData.push({"name" : "formId", "value" : formId});
-		postData.push({"name" : "labelId", "value" : labelId});
-		postData.push({"name" : "draft_docnum", "value" : docnum});
-		postData.push({"name" : "doc_slvl", "value" : doc_slvl});
-		postData.push({"name" : "opinion", "value" : opinion});
-		
-		var formURL = $(this).attr("action");
-		$.ajax({
-			url : formURL,
-			type: "POST",
-			data : postData,
-			success:function(data, textStatus, jqXHR) 
-			{
-				var formId = "retformPass";	
-				var form = "";
-				form = $("<form id='"+formId+"' action='"+APPROVAL_CONTEXT+"/approvalDocPageList.do' method='post'></form>");
-				form.append("<input type=\"hidden\" name=\"docType\" value=\"waiting\">");
-				$('body').append(form);
-				$("#"+formId+"").submit();
-			},
-			error: function(jqXHR, textStatus, errorThrown) 
-			{
-				draft_debug("draft error textStatus["+textStatus+"], errorThrown["+errorThrown+"]");
-				alert("error!-3");
-			    //if fails      
-			}
-		});
-		try{
-			e.preventDefault(); //STOP default action
-			e.unbind(); //unbind. to stop multiple form submit.
-		}catch(e){
-			if(window.console)window.console.log(e);
-		}
-	});
-
-	$("#draft_form").submit(); //Submit  the FORM
+	composeApprovalInfos("attach", "approve");
+	var resultDocTypeElem = "<input type=\"hidden\" name=\"docType\" id=\"docType\" value=\"waiting\" />";
+	$("#attach").append(resultDocTypeElem);
+	$("#attach").submit();
 }
 function receive_fn(){
 	var opinion = document.getElementById("opinion").value;
@@ -834,26 +812,21 @@ function receive_fn(){
 		$('#selectlabelNm').focus();
 		return false;
 	}
-	var docBody = getBodyContent();
+	var docBody = getBodyContent("receive");
 	var signerList = getSignerList(signerListTableId);
 
 	var signerList4Json = JSON.stringify(signerList);
-	//var recipientList = getRecipientList(recipientListTableId);
-	//var recipientList4Json = JSON.stringify(recipientList);
 	
 	var attachList = getAttachList();
 	var attachList4Json = JSON.stringify(attachList);
 	
 	var labelId = $("#selectlabelId").val();
 	var docnum = $("#draft_docnum").val();
-	var doc_slvl = $("input[name=doc_slvl]:checked").val();
 	
 	// TODO for other info, title, label, security, and so on. 
-	
 	$("#draft_form").submit(function(e){
 		var postData = $(this).serializeArray();
 		postData.push({"name" : "signerList", "value" : signerList4Json});
-		//postData.push({"name" : "recipientList", "value" :  recipientList4Json});
 		postData.push({"name" : "attachList", "value" : attachList4Json});
 		postData.push({"name" : "docBody", "value" : docBody});
 		postData.push({"name" : "userId", "value" : userId});
@@ -862,7 +835,6 @@ function receive_fn(){
 		postData.push({"name" : "formId", "value" : formId});
 		postData.push({"name" : "labelId", "value" : labelId});
 		postData.push({"name" : "draft_docnum", "value" : docnum});
-		postData.push({"name" : "doc_slvl", "value" : doc_slvl});
 		postData.push({"name" : "opinion", "value" : opinion});
 		
 		var formURL = $(this).attr("action");
@@ -897,14 +869,72 @@ function receive_fn(){
 	$("#draft_form").submit(); //Submit  the FORM
 }
 
+function redraftForIncoming_fn(){
+	var opinion = document.getElementById("opinion").value;
+	if($("#selectlabelNm").val() ==""){
+		alert(appvl_draft_nolabel);
+		$('#selectlabelNm').focus();
+		return false;
+	}
+	var docBody = getBodyContent("redraftForIncoming");
+	var signerList = getSignerList(signerListTableId);
+	var signerList4Json = JSON.stringify(signerList);
+	
+	var labelId = $("#selectlabelId").val();
+	var docnum = $("#draft_docnum").val();
+	var docType = "waiting";
+	// TODO for other info, title, label, security, and so on. 
+	$("#draft_form").submit(function(e){
+		var postData = $(this).serializeArray();
+		postData.push({"name" : "signerList", "value" : signerList4Json});
+		postData.push({"name" : "docBody", "value" : docBody});
+		postData.push({"name" : "docId", "value" : docId});
+		postData.push({"name" : "orgdocId", "value" : orgdocId});
+		postData.push({"name" : "labelId", "value" : labelId});
+		postData.push({"name" : "draft_docnum", "value" : docnum});
+		postData.push({"name" : "opinion", "value" : opinion});
+		postData.push({"name" : "docType", "value" : docType});
+		
+		var formURL = $(this).attr("action");
+		$.ajax({
+			url : formURL,
+			type: "POST",
+			data : postData,
+			success:function(data, textStatus, jqXHR) 
+			{
+				var formId = "retformPass";	
+				var form = "";
+				form = $("<form id='"+formId+"' action='"+APPROVAL_CONTEXT+"/approvalDocPageList.do' method='post'></form>");
+				form.append("<input type=\"hidden\" name=\"docType\" value=\"incoming\">");
+				$('body').append(form);
+				$("#"+formId+"").submit();
+			},
+			error: function(jqXHR, textStatus, errorThrown) 
+			{
+				draft_debug("draft error textStatus["+textStatus+"], errorThrown["+errorThrown+"]");
+				alert("error!-4");
+				//if fails      
+			}
+		});
+		try{
+			e.preventDefault(); //STOP default action
+			e.unbind(); //unbind. to stop multiple form submit.
+		}catch(e){
+			if(window.console)window.console.log(e);
+		}
+	});
+	$("#draft_form").submit(); //Submit  the FORM
+}
+
 function reject_fn(){
 	var opinion = document.getElementById("opinion").value;
+	var editFlag = document.getElementById("editFlag").value;
 	$.ajax({                        
 		type: "POST",
 		url: APPROVAL_CONTEXT +"/rejected.do",
 		dataType: 'html',
 		cache: false,
-		data:{"userId": userId, "docId": docId, "opinion": opinion},
+		data:{"userId": userId, "docId": docId, "opinion": opinion, "editFlag": editFlag},
 		success: function(data) {
 				var formId = "retformPass";	
 				var form = "";
@@ -922,12 +952,13 @@ function reject_fn(){
 
 function hold_fn(){
 	var opinion = document.getElementById("opinion").value;
+	var editFlag = document.getElementById("editFlag").value;
 	$.ajax({                        
 		type: "POST",
 		url: APPROVAL_CONTEXT +"/hold.do",
 		dataType: 'html',
 		cache: false,
-		data:{"userId": userId, "docId": docId, "opinion": opinion},
+		data:{"userId": userId, "docId": docId, "opinion": opinion, "editFlag": editFlag},
 		success: function(data) {
 				var formId = "holdform";	
 				var form = "";
@@ -943,10 +974,20 @@ function hold_fn(){
     });
 }
 
-function getBodyContent(){
+function getBodyContent(action){
 	$("#"+draftBodyId +" input[type=text]").each(function(){
 		  $(this).attr("value", $(this).val());
 	});
 	
+	//delete ckeditor toolbar 
+	$('div').remove('#cke_content');
+	//replace textarea to div
+	if(action == "draft"){
+		var ckeditorContent = "<div id='editorContent'>"+CKEDITOR.instances.content.getData()+"</div>";
+		$('textarea#content').replaceWith(ckeditorContent);
+	}else if(action == "receive" || action == "redraftForIncoming"){
+		var ckeditorContent = "<div id='editorContent'>"+document.getElementById("hiddenContent").value+"</div>";
+		$('iframe#iframe_content').replaceWith(ckeditorContent);
+	}
 	return $("#"+draftBodyId).html();
 }

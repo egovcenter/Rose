@@ -539,10 +539,10 @@ public interface OrgConstant {
      * 사용자그룹(계층,공용)의 상태 코드 값 중 숨김
      */
     public static final String DIRGROUP_STATUS_HIDDEN	= "8";	// 숨김
-	
     
     public static final String IMAGE_FILE_TYPE_PHOTO = "photo";
     public static final String IMAGE_FILE_TYPE_SIGN = "sign";
+    public static final String IMAGE_FILE_TYPE_IMAGE = "image";
     
     public static final String DIRECTORY_ORGFOLDER_BASEDIR = "edirectory.orgfolder.basedir";
 }

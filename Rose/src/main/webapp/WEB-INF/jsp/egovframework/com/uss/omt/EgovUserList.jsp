@@ -165,7 +165,7 @@ function doView(userId) {
         	<!-- Button end -->
         	<!-- tree area start -->
         	<div class="tree">
-				<div class="lnb_tree" style="background:#FFF;border: 1px">
+				<div class="lnb_tree_s" style="background:#FFF;border: 1px">
 					<%@ include file="/WEB-INF/jsp/egovframework/com/uss/omt/cmm/EgovLnbTree.jsp" %>
 				</div>
         	</div>

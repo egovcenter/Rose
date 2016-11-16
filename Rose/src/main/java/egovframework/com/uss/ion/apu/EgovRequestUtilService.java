@@ -33,11 +33,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.ibm.icu.util.Calendar;
+
 import egovframework.com.cmm.service.EgovFileMngService;
 import egovframework.com.cmm.service.EgovFileMngUtil;
 import egovframework.com.cmm.service.EgovProperties;
 import egovframework.com.cmm.service.FileVO;
 import egovframework.com.cmm.service.Globals;
+import egovframework.com.cmm.util.DateHelper;
 import egovframework.com.uss.ion.apm.service.EgovFormService;
 import egovframework.com.uss.ion.apm.service.EgovLabelService;
 import egovframework.com.uss.ion.apm.service.FormVO;
@@ -94,6 +97,7 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 	public static String BROWSER_CHROME = "Chrome";
 	public static String BROWSER_OPERA = "Opera";
 	public static String BROWSER_FIREFOX = "Firefox";
+	public static int DOC_VERSION = 1;
 	
 	public String getTmpDir() {
 		return tmpDir;
@@ -103,9 +107,11 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 		EgovRequestUtilService.tmpDir = tmpDir;
 	}
 
-	public Doc getDoc(HttpServletRequest request) throws Exception{
+	public Doc getDoc(HttpServletRequest request, String docId) throws Exception{
+		if(docId==null){
+			docId = request.getParameter("docId");
+		}
 		String formId = request.getParameter("formId");
-		String docId = request.getParameter("docId");
 		String labelId = request.getParameter("labelId");
 		
 		String docSyear = request.getParameter("doc_syear");
@@ -122,6 +128,7 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 			doc = new DocImpl();
 			
 			doc.setDocID(docId);
+			doc.setDocVersion(DOC_VERSION);
 			doc.setFormId(formId);
 			doc.setDocSyear(ApprovalConstants.APPROVAL_DOC_SYEAR_FOREVER);
 			doc.setDocSlvl(ApprovalConstants.APPROVAL_DOC_SLVL_OPEN);
@@ -140,7 +147,6 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 		} else {
 		    title = request.getParameter("draft_title");
 		}
-		String openType = request.getParameter("draft_opentype");
 		String docnum = request.getParameter("draft_docnum");
 		
 		if (title != null && title.length() > 0){
@@ -188,94 +194,56 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 		return doc;
 	}
 	
-	public Doc getDocForReceive(HttpServletRequest request) throws Exception{
-		String formId = request.getParameter("formId");
-		String docId = request.getParameter("docId");
-		String labelId = request.getParameter("labelId");
-		String orgdocId = request.getParameter("orgdocId");
-		
-		String docSyear = request.getParameter("doc_syear");
-		String docSlvl = request.getParameter("doc_slvl");
-		String docEmF = request.getParameter("doc_em_f");
-		String docPpF = request.getParameter("doc_pp_f");
-		String docOrgId = request.getParameter("doc_org_id");
-		
-		logger.debug("getDocForReceive docId["+docId+"], formId["+formId+"], labelId["+labelId+"]");
+	public Doc getDocForReceive(HttpServletRequest request, String docId, Doc orgDoc) throws Exception{
 		if(docId != null && docId.equals("")){
 			docId = null;
 		}
 		
 		Doc doc = approvalDocService.getDoc(docId);
-		if(doc == null){
-			doc = new DocImpl();
-			
-			doc.setDocID(docId);
-			doc.setDocOrgId(orgdocId);
-			doc.setFormId(formId);
-			doc.setDocSyear(ApprovalConstants.APPROVAL_DOC_SYEAR_FOREVER);
-			doc.setDocSlvl("99");
-			doc.setDocEmF(ApprovalConstants.APPROVAL_DOC_EM_F_NORMAL);
-			doc.setDocPpF(ApprovalConstants.APPROVAL_DOC_PP_F_ELECTRONIC);
-			doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_NOTEXIST);
-			doc.setDocOpnF(ApprovalConstants.APPROVAL_DOC_OPN_F_NOTEXIST);
-			doc.setDocPState(ApprovalConstants.DOC_PROGRESS_STATE_ONGOING);
-			doc.setDocFState(ApprovalConstants.DOC_FINISH_STATE_ONGOING);
-			doc.setDocType(ApprovalConstants.DOC_TYPE_INCOMING);
-			
-		}
-		String title = request.getParameter("draft_title");
-		String openType = request.getParameter("draft_opentype");
+		if(doc != null){throw new Exception();}
+		
+		String formId = request.getParameter("formId");
+		String labelId = request.getParameter("labelId");
 		String docnum = request.getParameter("draft_docnum");
 		
-		if (title != null && title.length() > 0){
-			doc.setDocTitle(title);
-		}
+		doc = new DocImpl();
+		doc.setDocID(docId);
+		doc.setDocVersion(DOC_VERSION);
+		doc.setDocOrgId(orgDoc.getDocID());
+		doc.setDocTitle(orgDoc.getDocTitle());
+		doc.setDocSyear(ApprovalConstants.APPROVAL_DOC_SYEAR_FOREVER);
+		doc.setDocSlvl(orgDoc.getDocSlvl());
+		doc.setDocEmF(ApprovalConstants.APPROVAL_DOC_EM_F_NORMAL);
+		doc.setDocPpF(ApprovalConstants.APPROVAL_DOC_PP_F_ELECTRONIC);
+		doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_NOTEXIST);
+		doc.setDocOpnF(ApprovalConstants.APPROVAL_DOC_OPN_F_NOTEXIST);
+		doc.setDocPState(ApprovalConstants.DOC_PROGRESS_STATE_ONGOING);
+		doc.setDocFState(ApprovalConstants.DOC_FINISH_STATE_ONGOING);
+		doc.setDocType(ApprovalConstants.DOC_TYPE_INCOMING);
 		
 		if (formId != null && formId.length() > 0){
 			doc.setFormId(formId);
 		}
-		
 		if (labelId != null && labelId.length() > 0){
 			doc.setLbelId(labelId);
 		}
-		
 		if (docnum != null && docnum.length() > 0){
 			doc.setDocCd(docnum);
 		}
-		
-		if (docSyear != null && docSyear.length() > 0){
-			doc.setDocSyear(docSyear);
-		}
-		
-		if (docSlvl != null && docSlvl.length() > 0){
-			doc.setDocSlvl(docSlvl);
-		}
-		
-		if (docEmF != null && docEmF.length() > 0){
-			doc.setDocEmF(docEmF);
-		}
-		
-		if (docPpF != null && docPpF.length() > 0){
-			doc.setDocPpF(docPpF);
-		}
-		
-		if (docPpF != null && docPpF.length() > 0){
-			doc.setDocPpF(docPpF);
-		}
-		//draft_title, draft_opentype
 		logger.debug("getDocForReceive doc["+doc+"]");
 		
 		return doc;
 	}
 	
-	public List<SignerVO> getSignerList(HttpServletRequest request) throws Exception{
-		String docId = request.getParameter("docId");
+	public List<SignerVO> getSignerList(HttpServletRequest request, String docId, String userId, int docVersion) throws Exception{
+		if(docId==null){
+			docId = request.getParameter("docId");
+		}
 		String signerListJson = request.getParameter("signerList");;
 		boolean isRedraft = "true".equals(request.getParameter("redraft"));
 		
 		List<SignerVO> signerList = new ArrayList<SignerVO>();
 		List<SignerVO> orgSignerList = signerService.getApprovalSignerList(docId);
-
 
 		try {
 	        if (request instanceof MultipartHttpServletRequest) {
@@ -308,7 +276,8 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 			String signerPositionName = jsonObject.getString("signerPositionName");
 			String signerDutyName = jsonObject.getString("signerDutyName");
 			String signerSignState = jsonObject.getString("signerSignState");
-			
+			String signerSginDate = jsonObject.getString("signerSignDate");
+			String signerOpinion = jsonObject.getString("signerOpinion");
 			logger.debug("getSignerList jsonArray["+i+"], signerId["+signerId+"], signerKind["+signerKind+"], signerUserId["+signerUserId+"], signerSignState["+signerSignState+"]");
 
 			SignerVO signer = null;
@@ -342,6 +311,11 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 				}
 			}
 			
+			if(userId != null && docVersion > 0){
+				if(userId.equals(signerUserId)){
+					signer.setDocVersion(docVersion);
+				}
+			}
 			signer.setSignSeq(seq);
 			signer.setDocID(docId);
 			signer.setSignKind(signerKind);
@@ -352,6 +326,10 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 			signer.setSignerPositionName(signerPositionName);
 			signer.setSignerDutyName(signerDutyName);
 			signer.setSignState(signerSignState);
+			if (isRedraft == false) {
+				signer.setSignDate(DateHelper.convertDate(signerSginDate, "yyyy-MM-dd HH:mm"));
+				signer.setOpinion(signerOpinion);
+			}
 			
 			logger.debug("getSignerList jsonArray["+i+"], signer["+signer+"] added in signerList");
 			
@@ -391,8 +369,10 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 		return content;
 	}
 	
-	public List<RecipientVO> getRecipientList(HttpServletRequest request) throws Exception{
-		String docId = request.getParameter("docId");
+	public List<RecipientVO> getRecipientList(HttpServletRequest request, String docId) throws Exception{
+		if(docId==null){
+			docId = request.getParameter("docId");
+		}
 		String recipientListJson = request.getParameter("recipientList");
 
 		List<RecipientVO> recipientList = new ArrayList<RecipientVO>();

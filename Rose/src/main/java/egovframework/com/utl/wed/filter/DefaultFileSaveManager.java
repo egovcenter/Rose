@@ -63,8 +63,8 @@ public class DefaultFileSaveManager implements FileSaveManager {
 		}
 
 		String savedFileName = FilenameUtils.getName(fileToSave.getAbsolutePath());
-		relUrl = StringUtils.replace(subDir, "\\", "/") + savedFileName;
-
-		return imageDomain + relUrl;
+		relUrl = imageDomain+"?subDir="+StringUtils.replace(subDir, "\\", "/")+"&savedFileName="+savedFileName;
+		
+		return relUrl;
 	}
 }

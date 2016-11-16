@@ -397,6 +397,9 @@ $(document).on("click", "input[name=signer_seq]:checkbox", function(){
 						<tr <c:if test="${signer.signState == 'SS09' or signer.signKind == 'SK00'}">class="unsortable"</c:if>>
 							<td class="align_center">
 								<c:choose>
+									<c:when test="${signer.signState == 'SS09'}">
+										<input type="checkbox" name="signer_seq" disabled="true" value="<c:if test="${empty signer.signSeq}"><c:out value="${status.count}"/></c:if><c:if test="${not empty signer.signSeq}"><c:out value="${signer.signSeq}"/></c:if>"/></td>
+									</c:when>
 									<c:when test="${signer.signKind == 'SK01' or signer.signKind == 'SK02'}">
 										<input type="checkbox" name="signer_seq" value="<c:if test="${empty signer.signSeq}"><c:out value="${status.count}"/></c:if><c:if test="${not empty signer.signSeq}"><c:out value="${signer.signSeq}"/></c:if>"/></td>
 									</c:when>
@@ -407,7 +410,7 @@ $(document).on("click", "input[name=signer_seq]:checkbox", function(){
 								</c:choose>
 							</td>							
 							<td><div class="signer_deptname"><c:out value="${signer.signerDeptName}"/></div></td>
-							<td><div class="signer_positionname"><c:out value="${signer.signerPositionName}"/><c:out value="${signer.signDate}"/></div></td>
+							<td><div class="signer_positionname"><c:out value="${signer.signerPositionName}"/></div></td>
 							<td><div class="signer_signername"  name="signer_signername">${signer.signerName}</div></td>
 							<td>
 								<c:choose>

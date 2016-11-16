@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 
 import egovframework.com.uss.ion.apm.service.FormVO;
@@ -107,7 +108,8 @@ public class FormProcessor {
     	sancline.put("deptName", signer.getSignerDeptName() == null ? "" : signer.getSignerDeptName());
     	sancline.put("approvalDate", signer.getSignDate()== null ? null : signer.getSignDate());
     	sancline.put("status", signer.getSignState() == null ? "" : signer.getSignState());
-    	
+    	sancline.put("orgId", signer.getSignerDeptID() == null? "" : signer.getSignerDeptID());
+    	sancline.put("usrUniqId", signer.getUserID() == null? "" : signer.getUserID());
     	return sancline;
     }
     
@@ -182,7 +184,7 @@ public class FormProcessor {
 	    		dataMap.put("draftSanclines", sanclines);
 	    	}
 	    	merge(jsoupDoc, dataMap);
-	    	PathUtil.saveFile(docFile, jsoupDoc.toString());
+	    	PathUtil.saveFile(docFile, Parser.unescapeEntities(jsoupDoc.toString(), false));
 	    	return docFile;
 		} catch (IOException e) {
 			throw e;
@@ -212,7 +214,7 @@ public class FormProcessor {
 	    		dataMap.put("draftSanclines", sanclines);
 	    	}
 	    	merge(jsoupDoc, dataMap);
-	    	PathUtil.saveFile(docFile, jsoupDoc.toString());
+	    	PathUtil.saveFile(docFile, Parser.unescapeEntities(jsoupDoc.toString(), false));
 	    	return docFile;
 		} catch (IOException e) {
 			throw e;
@@ -242,7 +244,7 @@ public class FormProcessor {
 	    		dataMap.put("recvSanclines", sanclines);
 	    	}
 	    	merge(jsoupDoc, dataMap);
-	    	PathUtil.saveFile(docFile, jsoupDoc.toString());
+	    	PathUtil.saveFile(docFile, Parser.unescapeEntities(jsoupDoc.toString(), false));
 	    	return docFile;
 		} catch (IOException e) {
 			throw e;
@@ -272,7 +274,7 @@ public class FormProcessor {
 	    		dataMap.put("recvSanclines", sanclines);
 	    	}
 	    	merge(jsoupDoc, dataMap);
-	    	PathUtil.saveFile(docFile, jsoupDoc.toString());
+	    	PathUtil.saveFile(docFile, Parser.unescapeEntities(jsoupDoc.toString(), false));
 	    	return docFile;
 		} catch (IOException e) {
 			throw e;
@@ -412,7 +414,7 @@ public class FormProcessor {
 				element.attr("disabled", "disabled");
 			}
 		}
-		return jsoupDoc.toString();
+		return Parser.unescapeEntities(jsoupDoc.toString(), false);
 	}
 	
 	/* 20160404_SUJI.H */
@@ -446,7 +448,7 @@ public class FormProcessor {
 				element.removeAttr("disabled");
 			}
 		}
-		return jsoupDoc.toString();
+		return Parser.unescapeEntities(jsoupDoc.toString(), false);
 	}
 	/* 20160404_SUJI.H */
 

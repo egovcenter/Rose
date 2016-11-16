@@ -4,6 +4,11 @@ import java.util.Date;
 
 public class ApprovalConstants {
 
+	//첨부파일 변경 내용
+	//  - Add : 추가
+	//  - Delete : 삭제
+	public static final String ATTACH_ACTION_ADD = "add";
+	public static final String ATTACH_ACTION_DELETE = "delete";
 	
 	//수신함 보유 여부
 	//  - 1 : 보유

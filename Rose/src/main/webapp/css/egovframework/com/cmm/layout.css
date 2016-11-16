@@ -67,7 +67,7 @@ overflow:visible;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:
 /* 추가 */
 .lnb_menu {width:181px; height:auto; margin:0 12px 12px 12px; }
 /* 20160530 추가   */
-.lnb_tree_s {width:181px; height:auto; margin:0; }
+.lnb_tree_s {width:550px; height:auto; margin:0; }
 
 
 /* Tab */ 
@@ -82,7 +82,7 @@ overflow:visible;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:
 /* Content  20160530  min-width min-height 수정  및 추가  */
 .content_box {width:auto !important; min-width:780px; height:auto;min-height:600px; overflow:visible; margin:0 16px 0 220px;} 
 /* 20160530 추가   */
-.content_box .tree_area {position: relative; float:left; width:40%; min-width:300px; height:auto;overflow:visible; margin:0 5% 0 0px;} 
+.content_box .tree_area {position: relative; float:left; width:40%; min-width:550px; height:auto;overflow:visible; margin:0 5% 0 0px;} 
 .content_box .tree {width:95%; height:auto; min-height:497px; padding:0 2% 2% 2%;border: 1px solid #e3e3e3; background:#ffffff;}
 .content_box .con_area {position: relative; float:left; width:55%; min-width:400px; height:auto; overflow:visible; margin:0px;} 
 .content_box .con {width:100%; height:auto; border: 0px solid #e3e3e3}
@@ -186,7 +186,6 @@ overflow:visible;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:
 .opinion_box .comment .infoR  {width:160px; height:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;float:left;}
 .opinion_box .comment .linedot {width:auto; height:8px; background:url(../../../../images/egovframework/com/uss/cmm/line_dot8.png) repeat-x; clear:both;}
 .opinion_box .comment .text_line {width:auto; height:auto; min-height:52px; padding-top:8px; overflow-y:auto; line-height:1.4;}
-
 
 /* PopUp_contents */
 #container_P {height:auto;position:relative;}
@@ -316,6 +315,7 @@ div.height_200px {height: 200px; overflow: auto;}
 .float_left {float: left;}
 .float_right {float: right;}
 .vertical_top {vertical-align: top !important;}
+.vertical_middle {vertical-align:middle !important;}
 .align_center {text-align: center !important;}
 .align_left {text-align: left !important;}
 .align_right {text-align: right;}
@@ -388,7 +388,7 @@ td.signBox_rapper table td {border: 1px solid #999; height: 52px;}
 .opinion_img img {width: 100%;}
 .opinion_list_txt {padding: 10px 0; margin: 10px 0; border-top: 1px dashed #ccc;}
 .rapper_table {/*overflow: hidden; */clear: both; -webkit-overflow-scrolling: touch;}
-.print_rapper {border: 1px solid #000; padding: 30px; width: 960px; height: 100%; margin: 0 auto;}
+.print_rapper {border: 1px solid #000; padding: 30px; width: 960px; height: auto; margin: 0 auto;}
 .height_line5 {height: 182px; overflow: auto; -webkit-overflow-scrolling: touch;}
 .height_line10 {height: 332px; overflow: auto; -webkit-overflow-scrolling: touch;}
 .solt_width {text-align: center; margin: 20px 0;}
@@ -437,6 +437,7 @@ div.tree_width200 {width: 200px;}
 .layerPopup_rapper p.popup_title.type_approval {background-color: #9575cd;}
 .layerPopup_rapper p.popup_title.type_BBS {background-color: #1fbba6;}
 .layerPopup_rapper p.popup_title.type_admin {background-color: #8696a2;}
+.layerPopup_rapper p.popup_title.opiniontitle {font-size: 20px;}
 .scroll_height300 {height: 300px; overflow: auto;}
 /* 20160530 추가   */
 .layerPopup_rapper_s {padding: 10px; background-color: #fff; border: 1px solid #dcdbd5; width: 220px; position: fixed; top: 0; left: 0; z-index: 99999;}

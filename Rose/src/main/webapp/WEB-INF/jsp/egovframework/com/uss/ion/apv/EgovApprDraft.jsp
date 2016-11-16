@@ -22,14 +22,15 @@
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/jquery.form.js"'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/uss/ion/popup.js"'/>"></script>
 <script type="text/javascript" src="<c:url value='/js/egovframework/com/cmm/fms/EgovMultiFile.js'/>" ></script>
+<script type="text/javascript" src="<c:url value='/html/egovframework/com/cmm/utl/ckeditor/ckeditor.js'/>" ></script>
 <script type="text/javascript" src="<c:url value="/validator.do"/>"></script>
 <validator:javascript formName="attach" staticJavascript="false" xhtml="true" cdata="false"/>
 <script>
 var APPROVAL_CONTEXT = "${pageContext.servletContext.contextPath}";
 var userId = "${loginVO.uniqId}";
 var userName = "${loginVO.name}";
-var docId = "${doc.docID}";
-var formId = "${doc.formId}";
+var formId = "${formId}";
+var docId = "no_doc_id";
 function toggle_content(obj, ID){
 	$('.tab_box').each(function(index){
 		if(ID == "approval_head"){
@@ -146,11 +147,11 @@ var appvl_draft_notitle = "<spring:message code="appvl.draft.notitle"/>";
 									<tbody>
 										<tr>
 											<th scope="row"><label for="label_1"><spring:message code="appvl.documet.label.title"/></label></th>
-											<td colspan="2"><div class="ui_input_text"><input type="text" name="draft_title" value="<c:out value="${doc.docTitle}"/>"/></div></td>
+											<td colspan="2"><div class="ui_input_text"><input type="text" name="draft_title" value=""/></div></td>
 										</tr>
 										<tr>
 											<th scope="row"><label for="label_2"><spring:message code="appvl.documet.label.label"/></label></th>
-											<td><div class="ui_input_text"><input type="text" value="" id="selectlabelNm" readonly="readonly"/><input type="hidden" value="<c:out value="${doc.lbelId}"/>" id="selectlabelId"/></div></td>
+											<td><div class="ui_input_text"><input type="text" value="" id="selectlabelNm" readonly="readonly"/><input type="hidden" value="" id="selectlabelId"/></div></td>
 											<td>
 												<div class="ui_btn_rapper">
 													<a href="#" class="btn_color3 selectLabel" onclick="javascript:openLabelPopup()"><spring:message code="common.button.select"/></a>
@@ -160,8 +161,8 @@ var appvl_draft_notitle = "<spring:message code="appvl.draft.notitle"/>";
 										<tr>
 											<th scope="row"><spring:message code="appvl.documet.label.security"/></th>
 											<td colspan="2">
-												<span class="radio_rapper"><input type="radio" value="99" name="doc_slvl" <c:if test="${doc.docSlvl eq '99'}">checked</c:if> /><label  for="label_3-1"><spring:message code="appvl.documet.label.security.open"/></label></span>
-												<span class="radio_rapper"><input type="radio" value="1" name="doc_slvl" <c:if test="${doc.docSlvl eq '1'}">checked</c:if> /><label  for="label_3-2"><spring:message code="appvl.documet.label.security.secret"/></label></span>
+												<span class="radio_rapper"><input type="radio" value="99" name="doc_slvl" checked/><label  for="label_3-1"><spring:message code="appvl.documet.label.security.open"/></label></span>
+												<span class="radio_rapper"><input type="radio" value="1" name="doc_slvl"/><label  for="label_3-2"><spring:message code="appvl.documet.label.security.secret"/></label></span>
 											</td>
 										</tr>
 										<tr>

@@ -42,6 +42,7 @@ var appvl_draft_nolabel = "<spring:message code="appvl.draft.nolabel"/>";
 var appvl_draft_notitle = "<spring:message code="appvl.draft.notitle"/>";
 var appvl_draft_noattach = "<spring:message code="appvl.draft.noattach"/>";
 var appvl_draft_noregdept = "<spring:message code="appvl.draft.noregdept"/>";
+var appvl_draft_nodocnum = "<spring:message code="appvl.draft.nodocnum"/>";
 
 function makeFileAttachment(){
 	var maxFileNum =5;

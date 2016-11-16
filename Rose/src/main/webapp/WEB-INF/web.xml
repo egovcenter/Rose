@@ -44,7 +44,6 @@
     </filter-mapping>
  -->
     <!--  for CKEditor Image Upload -->
-    <!-- 
     <filter>
         <filter-name>CKFilter</filter-name>
         <filter-class>egovframework.com.utl.wed.filter.CkFilter</filter-class>
@@ -57,7 +56,6 @@
         <filter-name>CKFilter</filter-name>
         <url-pattern>/ckupload</url-pattern>
     </filter-mapping>
-    -->
     
     <!-- OAuth 및 facebook 연동-->
     <!-- 

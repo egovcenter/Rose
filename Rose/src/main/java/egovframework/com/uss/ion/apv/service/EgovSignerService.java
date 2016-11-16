@@ -33,11 +33,12 @@ public interface EgovSignerService {
     public String getWriteDocBody(Doc doc) throws Exception;
     public Doc registerIncoming(RegisterIncomingVO incoming, UserManageVO user) throws Exception;
     public Doc registerInternal(RegisterInternalVO internal, UserManageVO user) throws Exception;
+    public List<String> getPreAttachedFileIdList(String preAttachedFileListJson) throws Exception;
     
     public File approveForDraft(UserManageVO drafter, ApprovalContext approvalContext, String docBody, Map parameterMap, String preAttachedFileListJson) throws Exception;
     public String createDraftDoc(FormVO form, UserManageVO drafter, List<SignerVO> signerList, List<RecipientVO> recipientList) throws Exception;
     public String mergeSignTable(Doc doc, String signTableId, List<SignerVO> signerList) throws Exception;
-    public File approveForApprove(UserManageVO signer, ApprovalContext approvalContext, String docBody, Map parameterMap) throws Exception;
+    public File approveForApprove(UserManageVO signer, ApprovalContext approvalContext, String docBody, Map parameterMap, String preAttachedFileListJson) throws Exception;
     public File approveForReject(UserManageVO signer, Doc doc, String opinion) throws Exception;
     public File approveForReceive(UserManageVO signer, ApprovalContext approvalContext, String docBody,Map parameterMap)throws Exception;
     public File approveForHold(UserManageVO signer, Doc doc, String opinion) throws Exception;

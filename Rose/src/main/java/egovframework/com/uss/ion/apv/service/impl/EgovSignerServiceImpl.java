@@ -3,6 +3,7 @@ package egovframework.com.uss.ion.apv.service.impl;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,8 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import com.ibm.icu.util.Calendar;
 
 import egovframework.com.cmm.EgovMessageSource;
 import egovframework.com.uss.ion.apm.FormProcessor;
@@ -36,6 +39,7 @@ import egovframework.com.uss.ion.apv.service.EgovSignerService;
 import egovframework.com.uss.ion.apv.service.RecipientVO;
 import egovframework.com.uss.ion.apv.service.RegisterIncomingVO;
 import egovframework.com.uss.ion.apv.service.RegisterInternalVO;
+import egovframework.com.uss.ion.apv.service.SignerChangeHistoryVO;
 import egovframework.com.uss.ion.apv.service.SignerVO;
 import egovframework.com.uss.omt.service.DeptVO;
 import egovframework.com.uss.omt.service.DutyVO;
@@ -89,6 +93,9 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
     @Resource(name = "EgovSignerHistoryService")
     private EgovSignerHistoryService signerHistoryService;
 
+	@Resource(name = "SignerChangeHistoryDAO")
+	private SignerChangeHistoryDAO signerChangeHistoryDAO;
+	
     @Resource(name = "EgovAttachFileService")
     private EgovAttachFileService attachFileService;
     
@@ -247,11 +254,12 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         }
         return false;
     }
-    private SignerVO getCurrentSinger(UserManageVO signer, List<SignerVO> signerList){
+    private SignerVO getCurrentSigner(UserManageVO signer, List<SignerVO> signerList){
         for(int i=0; i<signerList.size(); i++){
             SignerVO tmp = signerList.get(i);
 //            logger.debug("signerList["+i+"]=>["+tmp+"]");
-            if(isOngoingState(tmp) && tmp.getUserID().equals(signer.getUniqId())){
+//            if(isOngoingState(tmp) && tmp.getUserID().equals(signer.getUniqId())){
+            if(tmp.getUserID().equals(signer.getUniqId())){
                 return tmp;
             }
         }
@@ -301,7 +309,8 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
                             SignerVO currentSigner, 
                             List<SignerVO> signerList, 
                             List<RecipientVO> recipientList, 
-                            List<AttachFileVO> attachList) throws Exception{
+                            List<AttachFileVO> attachList,
+                            String preAttachedFileListJson) throws Exception{
         
         LOGGER.debug("doneDoc doc.getDocType()[{}], currentSigner[{}], signerList[{}], recipientList[{}], attachList[{}]",
                 doc.getDocType(), currentSigner, signerList, recipientList, attachList);
@@ -319,7 +328,11 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         if(attachList != null && attachList.size() > 0){
             doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_EXIST);
         }else{
-            doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_NOTEXIST);
+        	if(preAttachedFileListJson != null && preAttachedFileListJson.length() > 2){
+        		doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_EXIST);
+        	}else{
+        		doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_NOTEXIST);
+        	}
         }
     }
     private void processRecipientInfo(Doc doc, SignerVO drafterSigner, SignerVO lastSigner)throws Exception{
@@ -357,7 +370,8 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
                         SignerVO lastSigner, 
                         List<SignerVO> signerList, 
                         List<RecipientVO> recipientList, 
-                        List<AttachFileVO> attachList) throws Exception{
+                        List<AttachFileVO> attachList,
+                        String preAttachedFileListJson) throws Exception{
 //        logger.debug("doneDoc doc.getDocType()["+doc.getDocType()+"], signerList["+signerList+"], recipientList["+recipientList+"], attachList["+attachList+"]");
         if(ApprovalConstants.DOC_TYPE_INTERNAL.equals(doc.getDocType()) &&
                 recipientList != null && recipientList.size() > 0){
@@ -366,15 +380,17 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
                 (recipientList == null || recipientList.size() < 1)){
             doc.setDocType(ApprovalConstants.DOC_TYPE_INTERNAL);
         }
-        
         // process doc
         doc.setDocPState(ApprovalConstants.DOC_PROGRESS_STATE_FINISHED);
         doc.setDocFState(ApprovalConstants.DOC_FINISH_STATE_COMPLETED);
-        
         if(attachList != null && attachList.size() > 0){
             doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_EXIST);
         }else{
-            doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_NOTEXIST);
+        	if(preAttachedFileListJson != null && preAttachedFileListJson.length() > 2){
+        		doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_EXIST);
+        	}else{
+        		doc.setDocAttaF(ApprovalConstants.APPROVAL_DOC_ATTA_F_NOTEXIST);
+        	}
         }
         
         String docNum = generateDraftDocNum(doc, draftSigner, lastSigner);
@@ -506,7 +522,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         
         signerList = arrangeSignerList(signerList);
         
-        SignerVO currentSigner = getCurrentSinger(drafter, signerList);
+        SignerVO currentSigner = getCurrentSigner(drafter, signerList);
 //        logger.debug("currentSigner["+currentSigner+"]");
         if(currentSigner == null){
             throw new Exception("can not find the current signer by the signer state in the signerList.");
@@ -522,26 +538,26 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         if(nextSigner != null){
             LOGGER.debug("approveForDraft....next signer.....");
             
-            ongoingDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList);
+            ongoingDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList, preAttachedFileListJson);
             
             nextSigner.setSignState(ApprovalConstants.SIGNER_STATE_ONGOING);
             
             docFile = ongoingDocFile(docFile, doc, draftSigner, signerList, parameterMap);
             
             // apply the doc, signerList and so on to the db
-            applyToDB(doc, signerList, recipientList, attachList, draftSigner, null, preAttachedFileListJson);
+            applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, null, preAttachedFileListJson);
         }
         else{
             LOGGER.debug("approveForDraft....next signer is null.....");
             
-            doneDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList);
+            doneDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList, preAttachedFileListJson);
             
             docFile = doneDocFile(docFile, doc, draftSigner, currentSigner, signerList, parameterMap);
             
             // TODO send doc to recipients....
             
             // apply the doc, signerList and so on to the db
-            applyToDB(doc, signerList, recipientList, attachList, draftSigner, currentSigner, preAttachedFileListJson);
+            applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, currentSigner, preAttachedFileListJson);
         }
         
         signerHistoryService.draft(currentSigner);
@@ -552,7 +568,8 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
     public File approveForApprove(UserManageVO signer, 
                                 ApprovalContext approvalContext, 
                                 String docBody, 
-                                Map parameterMap) throws Exception {
+                                Map parameterMap,
+                                String preAttachedFileListJson) throws Exception {
         
         Doc doc = approvalContext.getDoc();
         List<SignerVO> signerList = approvalContext.getSignerList();
@@ -563,7 +580,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         
         signerList = arrangeSignerList(signerList);
         
-        SignerVO currentSigner = getCurrentSinger(signer, signerList);
+        SignerVO currentSigner = getCurrentSigner(signer, signerList);
         LOGGER.debug("approveForApprove find currentSigner[{}]", currentSigner);
         if(currentSigner == null){
             throw new Exception("can not find the current signer by the signer state in the signerList.");
@@ -574,16 +591,12 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
             throw new Exception("can not find the drafter info["+signerList+"]");
         }
         // done the singer
-//        logger.debug("approveForApprove doneSigner before currentSigner["+currentSigner+"]");
         doneSigner(currentSigner);
-//        logger.debug("approveForApprove doneSigner after currentSigner["+currentSigner+"]");
-        
         SignerVO nextSigner = getNextSigner(signerList);
-//        logger.debug("approveForApprove nextSigner["+nextSigner+"]");
        
         if(nextSigner != null){
             // 검토 처리
-            ongoingDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList);
+            ongoingDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList, preAttachedFileListJson);
             LOGGER.debug("approveForApprove after ongoingDoc[{}]", doc);
             
             nextSigner.setSignState(ApprovalConstants.SIGNER_STATE_ONGOING);
@@ -592,18 +605,17 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
             docFile = ongoingDocFile(docFile, doc, draftSigner, signerList, parameterMap);
             LOGGER.debug("approveForApprove ongoingDoc docFile[{}]", docFile.getAbsolutePath());
             // apply the doc, signerList and so on to the db
-            applyToDB(doc, signerList, recipientList, attachList, draftSigner, null, null);
-        }
-        else{
+            applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, null, preAttachedFileListJson);
+        }else{
             // 결재 처리
-            doneDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList);
+            doneDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList, preAttachedFileListJson);
             LOGGER.debug("approveForApprove after doneDoc[{}]", doc);
             
             docFile = doneDocFile(docFile, doc, draftSigner, currentSigner, signerList, parameterMap);
             LOGGER.debug("approveForApprove doneDoc docFile[{}]", docFile.getAbsolutePath());
             
             // apply the doc, signerList and so on to the db
-            applyToDB(doc, signerList, recipientList, attachList, draftSigner, currentSigner, null);
+            applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, currentSigner, preAttachedFileListJson);
         }
         
         signerHistoryService.approval(currentSigner);
@@ -621,10 +633,11 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         
         File docFile = PathUtil.getDocPath(doc);
         
-        SignerVO currentSigner = getCurrentSinger(signer, signerList);
+        SignerVO currentSigner = getCurrentSigner(signer, signerList);
         if(currentSigner == null){
             throw new Exception("can not find the current signer by the signer state in the signerList.");
         }
+        currentSigner.setDocVersion(doc.getDocVersion());
         
         SignerVO draftSigner = getDrafter(signerList);
         if(draftSigner == null){
@@ -635,7 +648,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
 
         rejectDoc(doc, currentSigner, signerList, recipientList, attachList);
         
-        applyToDB(doc, signerList, recipientList, attachList, draftSigner, null, null);
+        applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, null, null);
         
         signerHistoryService.reject(currentSigner);
         
@@ -653,10 +666,11 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         
         File docFile = PathUtil.getDocPath(doc);
         
-        SignerVO currentSigner = getCurrentSinger(signer, signerList);
+        SignerVO currentSigner = getCurrentSigner(signer, signerList);
         if(currentSigner == null){
             throw new Exception("can not find the current signer by the signer state in the signerList.");
         }
+        currentSigner.setDocVersion(doc.getDocVersion());
         
         SignerVO draftSigner = getDrafter(signerList);
         if(draftSigner == null){
@@ -667,7 +681,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
 
         holdDoc(doc, currentSigner, signerList, recipientList, attachList);
         
-        applyToDB(doc, signerList, recipientList, attachList, draftSigner, null, null);
+        applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, null, null);
         
         signerHistoryService.hold(currentSigner);
         
@@ -688,7 +702,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         
         signerList = arrangeSignerList(signerList);
         
-        SignerVO currentSigner = getCurrentSinger(signer, signerList);
+        SignerVO currentSigner = getCurrentSigner(signer, signerList);
 //        logger.debug("currentSigner["+currentSigner+"]");
         if(currentSigner == null){
             throw new Exception("can not find the current signer by the signer state in the signerList.");
@@ -704,24 +718,23 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         
         SignerVO nextSigner = getNextSigner(signerList);
         if(nextSigner != null){
-            ongoingDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList);
+            ongoingDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList, null);
             
             nextSigner.setSignState(ApprovalConstants.SIGNER_STATE_ONGOING);
             
             docFile = ongoingDocFile(docFile, doc, draftSigner, signerList, parameterMap);
             
             // apply the doc, signerList and so on to the db
-            applyToDB(doc, signerList, recipientList, attachList, draftSigner, null, null);
-        }
-        else{
-            doneDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList);
+            applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, null, null);
+        }else{
+            doneDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList, null);
             
             docFile = doneDocFile(docFile, doc, draftSigner, currentSigner, signerList, parameterMap);
             
             // TODO send doc to recipients....
             
             // apply the doc, signerList and so on to the db
-            applyToDB(doc, signerList, recipientList, attachList, draftSigner, currentSigner, null);
+            applyToDB(doc, signerList, recipientList, attachList, currentSigner, draftSigner, currentSigner, null);
         }
         
         signerHistoryService.receive(currentSigner);
@@ -729,20 +742,213 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         return docFile;
     }
     
-    private void applySignerList(Doc doc, List<SignerVO> signerList) throws Exception{
+    private void applySignerList(Doc doc, SignerVO currentSigner, List<SignerVO> signerList) throws Exception{
         if(doc == null || signerList == null) {
             return;
         }
         
-        SignerVO vo = new SignerVO();
+        processSignerInfo(doc, currentSigner, signerList);
+    }
+
+    private int findIndex(SignerVO search, List<SignerVO> list) {
+    	int idx = -1;
+    	
+    	int listSize = list.size();
+    	SignerVO tmp = null;
+    	
+    	for (int i = 0; i < listSize; i++) {
+    		tmp = list.get(i);
+    		
+    		if (tmp.getUserID().equalsIgnoreCase(search.getUserID())) {
+    			return i;
+    		}
+    	}
+    	return idx;
+    }
+    
+	private void processSignerChangeInfo(Doc doc, SignerVO currentSigner, List<SignerVO> currentSignerList, List<SignerVO> changedSignerList) throws Exception {
+		if (isDrafting(currentSignerList)) {
+			return;
+		}
+		
+		SignerVO vo = new SignerVO();
+        vo.setDocID(doc.getDocID());
+        
+		List<SignerVO> oriSignerList = orderListByAsc(currentSignerList);
+		List<SignerVO> changedItemList = new ArrayList<SignerVO>();
+		SignerChangeHistoryVO changer = createChanger(doc, currentSigner);
+		
+		changedItemList = processChangedItem(oriSignerList, changedSignerList);
+        writeChangedHistoryToDb(changer, changedSignerList, changedItemList, oriSignerList);
+	}
+
+	private boolean isDrafting(List<SignerVO> currentSignerList) {
+		if ((currentSignerList == null) || (currentSignerList.size()==0)) {
+			return true;
+		}
+		return false;
+	}
+
+	private List<SignerVO> processChangedItem(List<SignerVO> oriSignerList, List<SignerVO> changedSignerList) {
+		List<SignerVO> changedItemList = makeChangedItemList(oriSignerList, changedSignerList);
+		
+		deleteSameItemsInBothList(oriSignerList, changedSignerList);
+		
+		return changedItemList;
+	}
+
+	private void deleteSameItemsInBothList(List<SignerVO> oriSignerList, List<SignerVO> changedSignerList) {
+		int oriListSize = oriSignerList.size();
+		
+		for (int i = (oriListSize-1); i >= 0; i--) {
+			SignerVO oriSigner = oriSignerList.get(i);
+			int targetIdx = findIndex(oriSigner, changedSignerList);
+			if (targetIdx >= 0) {
+				changedSignerList.remove(targetIdx);
+				oriSignerList.remove(i);
+			}
+		}
+	}
+
+	private List<SignerVO> makeChangedItemList(List<SignerVO> oriSignerList, List<SignerVO> changedSignerList) {
+		List<SignerVO> changedItemList = new ArrayList<SignerVO>();
+		
+		SignerVO oriSigner = null;
+		SignerVO changedSigner = null;
+		
+		int oriListSize = oriSignerList.size();
+		int changedListSize = changedSignerList.size();
+		
+		for (int i = 0; i < oriListSize; i++) {
+			oriSigner = oriSignerList.get(i);
+			
+			if (isOutOfRange(i, changedListSize)) {
+				changedItemList.add(oriSigner);
+			} else {
+				changedSigner = changedSignerList.get(i);
+				
+				if (oriSigner.getUserID().equalsIgnoreCase(changedSigner.getUserID()) == false) {
+					changedItemList.add(oriSigner);
+				}
+			}
+		}
+		return changedItemList;
+	}
+
+	private boolean isOutOfRange(int index, int listSize) {
+		if (index >= listSize) {
+			return true;
+		}
+		return false;
+	}
+
+	private SignerChangeHistoryVO createChanger(Doc doc, SignerVO currentSigner) {
+		SignerChangeHistoryVO changeVO = new SignerChangeHistoryVO();
+		
+		changeVO.setDocId(doc.getDocID());
+		changeVO.setChangeDate(Calendar.getInstance().getTime());
+		changeVO.setInitiatorId(currentSigner.getUserID());
+		return changeVO;
+	}
+
+	private List<SignerVO> orderListByAsc(List<SignerVO> prevSignerListByDesc) {
+		int size = prevSignerListByDesc.size();
+		
+		List<SignerVO> newList = new ArrayList<SignerVO>();
+		for (int i = (size-1); i >= 0; --i) {
+			newList.add((size-1-i), prevSignerListByDesc.get(i));
+		}
+		return newList;
+	}
+
+	private void writeChangedHistoryToDb(SignerChangeHistoryVO changer, List<SignerVO> addedSignerList, List<SignerVO> changedSignerList,
+			List<SignerVO> deletedSignerList) throws Exception {
+		if (isValidList(addedSignerList)) {
+			writeAddedHistory(changer, addedSignerList);
+		}
+		
+		if (isValidList(changedSignerList)) {
+			writeChangedHistory(changer, changedSignerList);
+		}
+		
+		if (isValidList(deletedSignerList)) {
+			writeDeletedHistory(changer, deletedSignerList);
+		}
+		
+		addedSignerList = null;
+		changedSignerList = null;
+		deletedSignerList = null;
+	}
+
+	private boolean isValidList(List<SignerVO> list) {
+		if ((list == null) || (list.size()==0)) {
+			return false;
+		}
+		return true;
+	}
+
+	private void writeDeletedHistory(SignerChangeHistoryVO historyVO, List<SignerVO> deletedSignerList) throws Exception {
+		for (SignerVO signer : deletedSignerList) {
+			historyVO.setTargetId(signer.getUserID());
+			historyVO.setActivity(makeHistoryForDeletion(signer.getSignerName()));
+			
+			signerChangeHistoryDAO.insertHistory(historyVO);
+		}
+	}
+
+	private void writeChangedHistory(SignerChangeHistoryVO historyVO, List<SignerVO> changedSignerList) throws Exception {
+		for (SignerVO signer : changedSignerList) {
+			historyVO.setTargetId(signer.getUserID());
+			historyVO.setActivity(makeHistoryForModification(signer.getSignerName()));
+			
+			signerChangeHistoryDAO.insertHistory(historyVO);
+		}
+	}
+
+	private void writeAddedHistory(SignerChangeHistoryVO historyVO, List<SignerVO> addedSignerList) throws Exception {
+		for (SignerVO signer : addedSignerList) {
+			historyVO.setTargetId(signer.getUserID());
+			historyVO.setActivity(makeHistoryForInsertion(signer.getSignerName()));
+			
+			signerChangeHistoryDAO.insertHistory(historyVO);
+		}
+	}
+
+	private String makeHistoryForDeletion(String userName) {
+		StringBuffer history = new StringBuffer();
+		history.append("delete ");
+		history.append(userName);
+		
+		return history.toString();
+	}
+
+	private String makeHistoryForModification(String userName) {
+		StringBuffer history = new StringBuffer();
+		history.append("change sequence of ");
+		history.append(userName);
+		
+		return history.toString();
+	}
+
+	private String makeHistoryForInsertion(String userName) {
+		StringBuffer history = new StringBuffer();
+		history.append("add ");
+		history.append(userName);
+		
+		return history.toString();
+	}
+	
+	private void processSignerInfo(Doc doc, SignerVO currentSigner, List<SignerVO> signerList) throws Exception {
+		SignerVO vo = new SignerVO();
         vo.setDocID(doc.getDocID());
         
         List<SignerVO> signerListFromDB = signerDAO.selectApprovalSigners(vo);
+        List<SignerVO> oriSignerListFromDB = signerListFromDB;
         List<SignerVO> insertSignerList = new ArrayList<SignerVO>();
         List<SignerVO> updateSignerList = new ArrayList<SignerVO>();
         List<SignerVO> deleteSignerList = new ArrayList<SignerVO>();
         
-        for(int i=0; i<signerList.size(); i++){
+        for(int i=0; i<signerList.size(); i++) {
             SignerVO signer = (SignerVO)signerList.get(i);
             SignerVO srcSigner = null;
             for(int j=0; signerListFromDB != null && j<signerListFromDB.size(); j++){
@@ -759,6 +965,13 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
                 insertSignerList.add(signer);
             }
         }
+        
+        if (isInsertedWaitingSigner(currentSigner, signerList)) {
+        	initSignState(currentSigner, updateSignerList);
+        }
+
+        processSignerChangeInfo(doc, currentSigner, oriSignerListFromDB, signerList);
+        
         if(signerListFromDB.size() > 0){
             deleteSignerList.addAll(signerListFromDB);
         }
@@ -771,9 +984,39 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         for(int i=0; i<deleteSignerList.size(); i++){
             deleteApprovalSigner(deleteSignerList.get(i));
         }
-    }
+	}
     
-    private void applyDoc(Doc doc)throws Exception{
+    private void initSignState(SignerVO currentSigner, List<SignerVO> signerList) {
+    	SignerVO signer = null;
+		int currentSignerIdx = findIndex(currentSigner, signerList);
+		if (currentSignerIdx >= 0) {
+			signer = signerList.get(currentSignerIdx);
+			signer.setSignState(ApprovalConstants.SIGNER_STATE_ONGOING);
+			signer.setOpinion(null);
+		} else {
+			signer = currentSigner;
+			signer.setSignState(ApprovalConstants.SIGNER_STATE_ONGOING);
+			signer.setOpinion(null);
+			
+			signerList.add(signer);
+		}
+	}
+
+	private boolean isInsertedWaitingSigner(SignerVO currentSigner, List<SignerVO> signerList) {
+		int currentSignerIdx = findIndex(currentSigner, signerList);
+		
+		if ((currentSignerIdx > 0)
+				&& isOngoingSigner(signerList.get(currentSignerIdx-1))) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isOngoingSigner(SignerVO signer) {
+		return signer.getSignState().equalsIgnoreCase(ApprovalConstants.SIGNER_STATE_ONGOING);
+	}
+
+	private void applyDoc(Doc doc)throws Exception{
         LOGGER.debug("applyDoc - enter");
         
         if(doc == null) {
@@ -881,8 +1124,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         }
     }
 
-    private List<String> getPreAttachedFileIdList(String preAttachedFileListJson)
-            throws JSONException {
+    public List<String> getPreAttachedFileIdList(String preAttachedFileListJson) throws JSONException {
         List<String> preAttachedFileIdList = null;
         
         if ((preAttachedFileListJson != null) && (preAttachedFileListJson.isEmpty() == false)) {
@@ -907,6 +1149,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
                             List<SignerVO> signerList,
                             List<RecipientVO> recipientList, 
                             List<AttachFileVO> attachList,
+                            SignerVO currentSigner,
                             SignerVO draftSigner, 
                             SignerVO lastSigner,
                             String preAttachedFileListJson) throws Exception {
@@ -917,7 +1160,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
 //        logger.debug("applyToDB draftSigner["+draftSigner+"], lastSigner["+lastSigner+"]");
     
         applyDoc(doc);
-        applySignerList(doc, signerList);
+        applySignerList(doc, currentSigner, signerList);
         applyRecipient(doc, recipientList);
         applyAttachList(doc, attachList, preAttachedFileListJson);
         
@@ -929,7 +1172,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
     public String mergeSignTable(Doc doc, String signTableId, List<SignerVO> signerList) throws Exception{
         File bodyFile = PathUtil.getDocPath(doc);
         
-        if(bodyFile == null || !bodyFile.exists()){
+        if(doc.getDocID().equals("no_doc_id")){
             FormVO form = formService.getForm(doc.getFormId());
             
             bodyFile = PathUtil.getFormPath(form);
@@ -1136,7 +1379,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         SignerVO drafterSigner = ((sendSignerList != null) && (sendSignerList.size() > 0)) ? sendSignerList.get(0) : null;
         SignerVO lasterSigner = ((sendSignerList != null) && (sendSignerList.size() > 1)) ? sendSignerList.get(1) : null;
         
-        applyToDB(doc, sendSignerList, recipientList, attachList, drafterSigner, lasterSigner, null);
+        applyToDB(doc, sendSignerList, recipientList, attachList, drafterSigner, drafterSigner, lasterSigner, null);
         
         return doc;
     }
@@ -1256,7 +1499,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         SignerVO drafterSigner = ((sendSignerList != null) && (sendSignerList.size() > 0)) ? sendSignerList.get(0) : null;
         SignerVO lasterSigner = ((sendSignerList != null) && (sendSignerList.size() > 1)) ? sendSignerList.get(1) : null;
         
-        applyToDB(doc, sendSignerList, null, attachList, drafterSigner, lasterSigner, null);
+        applyToDB(doc, sendSignerList, null, attachList, drafterSigner, drafterSigner, lasterSigner, null);
         
         return doc;
     }

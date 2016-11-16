@@ -1,40 +1,39 @@
 function approval_debug(msg){
 	if(window.console) window.console.log(msg);
 }
+
+var signerListTableId = "signer_list_table";
+
 window.showModalDialog = function (url, arg, feature) {
-        var opFeature = feature.split(";");
+       var opFeature = feature.split(";");
        var featuresArray = new Array()
-        if (document.all) {
-           for (var i = 0; i < opFeature.length - 1; i++) {
-                var f = opFeature[i].split("=");
-               featuresArray[f[0]] = f[1];
-            }
+       if (document.all) {
+	       for (var i = 0; i < opFeature.length - 1; i++) {
+		       var f = opFeature[i].split("=");
+		       featuresArray[f[0]] = f[1];
+	       }
        }
-        else {
-
-            for (var i = 0; i < opFeature.length - 1; i++) {
-                var f = opFeature[i].split(":");
-               featuresArray[f[0].toString().trim().toLowerCase()] = f[1].toString().trim();
-            }
+       else{
+		   for (var i = 0; i < opFeature.length - 1; i++) {
+			   var f = opFeature[i].split(":");
+			   featuresArray[f[0].toString().trim().toLowerCase()] = f[1].toString().trim();
+		   }
        }
-
-
 
        var h = "200px", w = "400px", l = "100px", t = "100px", r = "yes", c = "yes", s = "no";
        if (featuresArray["dialogheight"]) h = featuresArray["dialogheight"];
-        if (featuresArray["dialogwidth"]) w = featuresArray["dialogwidth"];
+       if (featuresArray["dialogwidth"]) w = featuresArray["dialogwidth"];
        if (featuresArray["dialogleft"]) l = featuresArray["dialogleft"];
-        if (featuresArray["dialogtop"]) t = featuresArray["dialogtop"];
-        if (featuresArray["resizable"]) r = featuresArray["resizable"];
+       if (featuresArray["dialogtop"]) t = featuresArray["dialogtop"];
+       if (featuresArray["resizable"]) r = featuresArray["resizable"];
        if (featuresArray["center"]) c = featuresArray["center"];
-      if (featuresArray["status"]) s = featuresArray["status"];
-        var modelFeature = "height = " + h + ",width = " + w + ",left=" + l + ",top=" + t + ",model=yes,alwaysRaised=yes" + ",resizable= " + r + ",celter=" + c + ",status=" + s;
+       if (featuresArray["status"]) s = featuresArray["status"];
+       var modelFeature = "height = " + h + ",width = " + w + ",left=" + l + ",top=" + t + ",model=yes,alwaysRaised=yes" + ",resizable= " + r + ",celter=" + c + ",status=" + s;
 
-        var model = window.open(url, "", modelFeature, null);
+       var model = window.open(url, "", modelFeature, null);
 
        model.dialogArguments = arg;
-
-    }
+}
 
 function downloadFile(url, docId, attachId, userId){
 	var formId = "downloadFileForm";
@@ -56,30 +55,46 @@ function downloadFile(url, docId, attachId, userId){
 	$("#"+formId+"").submit();
 	
 }
+function getSignerList(signerListId){
+	var signerList = new Array();
 
-function displaySignerHistory(){
-	$("#div_popup").load(APPROVAL_CONTEXT+'/signerhistory.do', 
-			{userId: userId, docId: docId},
+	$($("#"+signerListId+" tbody tr").get().reverse()).each(function(index){
+		var seq = $(this).find(".signer_seq").text();
+		var signerId = $(this).find(".signer_id").text();
+		var signerKind = $(this).find(".signer_kind").text();
+		var signerSignState = $(this).find(".signer_signstate").text();
+		var signerSignDate = $(this).find(".signer_signdate").text();
+		var signerUserId = $(this).find(".signer_userid").text();
+		var signerSignerName = $(this).find(".signer_signername").text();
+		var signerDeptId = $(this).find(".signer_deptid").text();
+		var signerDeptName = $(this).find(".signer_deptname").text();
+		var signerPositionName = $(this).find(".signer_positionname").text();
+		var signerDutyName = $(this).find(".signer_dutyname").text();
+		var signerOpinion = $(this).find(".signer_opinion").text();
+
+		signerList.push({"seq" : seq, "signerId": signerId, "signerKind": signerKind, 
+			"signerSignState": signerSignState, "signerSignDate" : signerSignDate,
+			"signerUserId" : signerUserId, "signerSignerName": signerSignerName, 
+			"signerDeptId": signerDeptId, "signerDeptName": signerDeptName, 
+			"signerPositionName": signerPositionName, "signerDutyName" : signerDutyName, 
+			"signerOpinion" : signerOpinion});
+	});
+	return signerList;
+}
+function changeSignerLine(){
+	$("body").css("overflow","");
+	var signerList = getSignerList(signerListTableId);
+	var signerList4Json = JSON.stringify(signerList);
+	$("#div_popup").load(APPROVAL_CONTEXT+'/signerline.do', 
+			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "false"},
 			function(){
-				if (typeof(display_signerhistory_load) != "undefined") {
-					display_signerhistory_load();
+				if (typeof(user_selection_load) != "undefined") {
+					user_selection_load();
 				}
 				$("#div_popup").show();
 			}
 	);
 }
-function displayRecipientHistory(){
-	$("#div_popup").load(APPROVAL_CONTEXT+'/recipienthistory.do', 
-			{userId: userId, docId: docId},
-			function(){
-				if (typeof(display_recipienthistory_load) != "undefined") {
-					display_recipienthistory_load();
-				}
-				$("#div_popup").show();
-			}
-	);
-}
-
 function composeRegisterIncomingInfos(elementId) {
 	// for remove the character, '$' and ';'
 	var recipient_deptid = $("#recipient_deptid").val();
@@ -98,7 +113,6 @@ function composeRegisterIncomingInfos(elementId) {
 	var resultDocTypeElem = "<input type=\"hidden\" name=\"docType\" id=\"docType\" value=\"incoming\" />";
 	$("#" + elementId).append(resultDocTypeElem);
 }
-
 function registeredIncomming(formID){
 	if($("#register_draft_title").val() == ""){
 		alert(appvl_draft_notitle);
@@ -110,11 +124,15 @@ function registeredIncomming(formID){
 		$('#recipient_deptname').focus();
 		return false;
 	}
+	if($("#register_recp_s_docnum").val() == ""){
+		alert(appvl_draft_nodocnum);
+		$('#register_recp_s_docnum').focus();
+		return false;
+	}
 	
 	composeRegisterIncomingInfos(formID);
 	$("#" + formID).submit();
 }
-
 function composeRegisterInternalInfos(elementId) {
 	var docTitle = encodeURIComponent($("input[name=register_draft_title]").val());
 	var docTitleElem = "<input type=\"hidden\" name=\"register_draft_title\" id=\"register_draft_title\" value=\"" + docTitle + "\" />";
@@ -123,7 +141,6 @@ function composeRegisterInternalInfos(elementId) {
 	var resultDocTypeElem = "<input type=\"hidden\" name=\"docType\" id=\"docType\" value=\"label\" />";
 	$("#" + elementId).append(resultDocTypeElem);
 }
-
 function registeredInternal(formID){
 	//title check
 	if($("#register_draft_title").val() ==""){
@@ -134,7 +151,6 @@ function registeredInternal(formID){
 	composeRegisterInternalInfos(formID);
 	$("#" + formID).submit();
 }
-
 function apprSend(formID){
 	if($("#selectedUserNm").val() == ""){
 		alert(appvl_outgoing_nosendername);
@@ -154,7 +170,6 @@ function apprSend(formID){
 	
 	$("#"+formID).submit(function(e){
 		var postData = $(this).serializeArray();
-		
 		var formURL = $(this).attr("action");
 		$.ajax({
 			url : formURL,
@@ -173,7 +188,6 @@ function apprSend(formID){
 						form = $("<form id='"+formId+"' action='"+APPROVAL_CONTEXT+"/approvalDocPageList.do' method='post'></form>");
 						form.append("<input type=\"hidden\" name=\"docType\" value=\"outgoing\">");
 					}
-					
 					
 					$('body').append(form);
 				}
@@ -198,9 +212,7 @@ function apprSend(formID){
 
 	$("#"+formID).submit(); //Submit  the FORM
 }
-
 function apprPass(formID){
-
 	// for remove the character, '$' and ';'
 	var recpDeptIDs = "";
 	var recpDeptNms = "";
@@ -250,4 +262,29 @@ function apprPass(formID){
 	});
 
 	$("#"+formID).submit(); //Submit  the FORM
+}
+function cancel(){
+	var editFlag = $("#editFlag").val();
+	var formId = "retformPass";	
+	var form = "";
+	form = $("<form id='"+formId+"' action='"+APPROVAL_CONTEXT+"/approvalDocPageList.do' method='post'></form>");
+	form.append("<input type=\"hidden\" name=\"docType\" value=\"waiting\">");
+	$('body').append(form);
+	
+	if(editFlag == "true"){
+		$.ajax({                        
+			type: "POST",
+			url: APPROVAL_CONTEXT +"/deleteTmpDocument.do",
+			dataType: 'html',
+			cache: false,
+			data:{"docId": docId},
+			success: function(data) {
+				$("#"+formId+"").submit();
+			},
+			error : function(jqXHR, textStatus, errorThrown){
+			}
+	    });
+	}else{
+		$("#"+formId+"").submit();
+	}
 }

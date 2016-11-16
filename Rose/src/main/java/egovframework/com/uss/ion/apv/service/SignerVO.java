@@ -16,6 +16,11 @@ public class SignerVO implements Serializable, Cloneable {
 	 * 문서ID
 	 */
 	protected String docID; //doc_id	char(9)
+	
+	/**
+	 * 문서 Version
+	 */
+	protected int docVersion; //doc_version	int(2)
 
 	/**
 	 * 순번
@@ -121,6 +126,14 @@ public class SignerVO implements Serializable, Cloneable {
 	 */
 	public void setDocID(String docID) {
 		this.docID = docID;
+	}
+
+	public int getDocVersion() {
+		return docVersion;
+	}
+
+	public void setDocVersion(int docVersion) {
+		this.docVersion = docVersion;
 	}
 
 	/* (non-Javadoc)
@@ -309,7 +322,7 @@ public class SignerVO implements Serializable, Cloneable {
 	}
 	@Override
 	public String toString() {
-		return "SignerImpl [signerID=" + signerID + ", docID=" + docID
+		return "SignerImpl [signerID=" + signerID + ", docID=" + docID + ", docVersion=" + docVersion
 				+ ", signSeq=" + signSeq + ", userID=" + userID
 				+ ", signerName=" + signerName + ", signerPositionName="
 				+ signerPositionName + ", signerDutyName=" + signerDutyName
@@ -319,5 +332,6 @@ public class SignerVO implements Serializable, Cloneable {
 				+ signSubUserFlag + ", signOrignUserID=" + signOrignUserID
 				+ "]";
 	}
+
 	
 }

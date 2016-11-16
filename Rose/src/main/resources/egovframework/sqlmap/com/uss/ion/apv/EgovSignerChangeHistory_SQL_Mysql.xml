@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SignerChangeHistory">
+
+	<typeAlias  alias="SignerChangeHistoryVO" type="egovframework.com.uss.ion.apv.service.SignerChangeHistoryVO"/>
+
+	<resultMap id="SignerChangeHistoryInf" class="egovframework.com.uss.ion.apv.service.SignerChangeHistoryVO">
+		<result property="seq" 							column="SEQ" 					columnIndex="1" />
+		<result property="docId" 						column="DOC_ID" 				columnIndex="2" />
+		<result property="changeDate" 					column="CHANGE_DT" 				columnIndex="3" />
+		<result property="initiatorId" 					column="INITIATOR_ID" 			columnIndex="4" />
+		<result property="initiatorNm" 					column="INITIATOR_NM" 			columnIndex="5" />
+		<result property="targetId" 					column="TARGET_ID" 				columnIndex="6" />
+		<result property="targetNm" 					column="TARGET_NM" 				columnIndex="7" />
+		<result property="activity" 					column="ACTIVITY" 				columnIndex="8" />
+	</resultMap>
+	
+	<select id="SignerChangeHistoryDAO.selectHistory" parameterClass="SignerChangeHistoryVO" resultMap="SignerChangeHistoryInf">
+		<![CDATA[
+			SELECT
+				SEQ,
+				DOC_ID,
+				CHANGE_DT,
+				INITIATOR_ID,
+				(SELECT USER_NM FROM COMTNEMPLYRINFO WHERE ESNTL_ID=INITIATOR_ID) INITIATOR_NM,
+				TARGET_ID,
+				(SELECT USER_NM FROM COMTNEMPLYRINFO WHERE ESNTL_ID=TARGET_ID) TARGET_NM,
+				ACTIVITY
+			FROM
+				SIGNER_CHANGE_HISTORY
+			WHERE
+				DOC_ID = #docId#
+			ORDER BY SEQ ASC
+		]]>
+	</select>
+	
+	<insert id="SignerChangeHistoryDAO.insertHistory" parameterClass="SignerChangeHistoryVO">
+		<![CDATA[
+			INSERT SIGNER_CHANGE_HISTORY
+				(DOC_ID,
+				CHANGE_DT,
+				INITIATOR_ID,
+				TARGET_ID,
+				ACTIVITY)
+			VALUES
+				(#docId#,
+				#changeDate#,
+				#initiatorId#,
+				#targetId#,
+				#activity#) 			
+		]]>
+	</insert>
+</sqlMap>

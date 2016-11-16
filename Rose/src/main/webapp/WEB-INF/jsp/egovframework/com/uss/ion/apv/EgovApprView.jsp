@@ -44,6 +44,37 @@ function toggle_content(obj, ID){
 		}
 	});
 }
+function settingDocumentContent(){
+	var contentHtml = $("#editorContent").html();
+	if(contentHtml != null){
+		$('div#editorContent').replaceWith('<iframe id="iframe_content" scrolling="yes"></iframe>');
+		settingIframe(contentHtml);
+	}else{
+		settingIframe();
+	}
+}
+function autoResize(id) {
+	var iframeBodyHeight = document.getElementById(id).contentWindow.document.body.scrollHeight;
+	var iframe = document.all(id);
+	iframe.style.height = iframeBodyHeight;
+}
+function settingIframe(newContent) {
+	if(newContent != null){
+		var styleSheet = "<link rel='stylesheet' type='text/css' href='html/egovframework/com/cmm/utl/ckeditor/contents.css'>"
+		var iframeHead = $("#iframe_content").contents().find("head");
+		iframeHead.append(styleSheet);
+		
+		var iframeBody = $("#iframe_content").contents().find("body");
+		iframeBody.append(newContent);
+		autoResize("iframe_content");
+	}
+}
+function replaceAll(str, searchStr, replaceStr) {
+    return str.split(searchStr).join(replaceStr);
+}
+$(function(){
+	settingDocumentContent();
+});
 </script>
 </head>
 
@@ -120,7 +151,7 @@ function toggle_content(obj, ID){
 											<c:if test="${not empty docBody}">
 											<td colspan="2">
 												<div class="float_right ui_btn_rapper">
-													<a href="javascript:displaySignerHistory()" class="btn_color3"><spring:message code="appvl.document.button.history"/></a>
+													<a href="javascript:displayApprovalHistory()" class="btn_color3"><spring:message code="appvl.document.button.history"/></a>
 												</div>
 											</td>
 											</c:if>
@@ -136,7 +167,8 @@ function toggle_content(obj, ID){
 														<col width="80px"/>
 														<col width="90px"/>
 														<col width="120px"/>
-														<col width=""/>
+														<col width="60px"/>
+														<col width="*"/>
 													</colgroup>
 													<thead>
 														<tr>
@@ -145,6 +177,7 @@ function toggle_content(obj, ID){
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.type"/></span></th>
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.status"/></span></th>
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.date"/></span></th>
+															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.version"/></span></th>
 															<th scope="col"><span><spring:message code="appvl.documet.label.signerline.table.opinion"/></span></th>	
 														</tr>
 													</thead>					
@@ -208,15 +241,27 @@ function toggle_content(obj, ID){
 															</c:choose>
 														</td>
 														<td>
-															<div class="signer_signDate"><fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${signer.signDate}"/></div>
+															<div class="signer_signDate">
+																<c:if test="${signer.signState ne 'SS03' and signer.signState ne 'SS00'}">
+																	<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${signer.signDate}"/>
+																</c:if>
+															</div>
+														</td>
+														<td>
+															<div class="signer_docVersion">
+																<c:if test="${signer.docVersion ne '0'}">
+																	<c:if test="${signer.signState ne 'SS03' and signer.signState ne 'SS00'}">
+																		<a href="javascript:documentPopup('view','${signer.docVersion}')"><fmt:formatNumber pattern=".0" value="${signer.docVersion}"/></a>
+																	</c:if>	
+																</c:if>	
+															</div>
 														</td>
 														<td>
 															<div class="signer_opinion">
 																<c:if test="${signer.signState ne 'SS00' and signer.signState ne 'SS03'}">
 																	<c:if test="${not empty signer.opinion}"><a href="javascript:opinionView('${signer.opinion}')"><c:out value="${signer.opinion}"/></a></c:if> 
-																	<c:if test="${empty signer.opinion}"><spring:message code="appvl.signerhistory.table.no_opinion"/></c:if>
+																	<c:if test="${empty signer.opinion}"><spring:message code="appvl.approvalhistory.sign.table.no_opinion"/></c:if>
 																</c:if>
-																<c:if test="${signer.signState eq 'SS00' and not empty signer.opinion}"><a href="javascript:opinionView('${signer.opinion}')"><c:out value="${signer.opinion}"/></a></c:if>													
 															</div>
 														</td>
 													</tr>
@@ -228,11 +273,10 @@ function toggle_content(obj, ID){
 										<tr>
 											<th scope="row"><spring:message code="appvl.documet.label.attachment"/> </th>
 											<td colspan="2">
-												<c:if test="${not empty attachList}">
-												<div class="float_right ui_btn_rapper">
-													<!--<a href="#" class="btn_color3">Select</a>
-													<a href="#" class="btn_color2">Delete</a>-->
-												</div>
+												<c:if test="${doc.docType ne 'DT03' and not empty docBody}">
+													<div class="float_right ui_btn_rapper">
+														<a href="javascript:displayAttachmentHistory()" class="btn_color3"><spring:message code="appvl.document.button.history"/></a>
+													</div>
 												</c:if>
 											</td>
 										</tr>
@@ -408,6 +452,11 @@ function toggle_content(obj, ID){
 	</div>
 	<!-- Container End -->
 	<div id="div_popup" style="display: none"></div>
+	<form id="popupForm" name="popupForm" method="post" action="${pageContext.servletContext.contextPath}/documentEditor.do" target="">
+		<input type="hidden" id="docId" name="docId" value="${doc.docID}" />
+		<input type="hidden" id="action" name="action" value="" />
+		<input type="hidden" id="docVersion" name="docVersion" value="" />
+	</form>
 </div>
 <!-- wrap End -->
 <%@ include file="/WEB-INF/jsp/egovframework/com/cmm/EgovCopyright.jsp" %>

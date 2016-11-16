@@ -12,21 +12,22 @@
 	<typeAlias  alias="SearchVO" type="egovframework.com.uss.ion.apv.SearchCriteria"/>
 	
 	<resultMap id="DocVO" class="egovframework.com.uss.ion.apv.DocImpl">
-		<result property="docID" 			column="DOC_ID" 		columnIndex="1" />
-		<result property="lbelId" 			column="LBEL_ID" 		columnIndex="2" />
-		<result property="docTitle" 		column="DOC_TITLE" 		columnIndex="3" />
-		<result property="docCd" 			column="DOC_CD" 		columnIndex="4" />
-		<result property="docSyear" 		column="DOC_SYEAR" 		columnIndex="5" />
-		<result property="docSlvl" 			column="DOC_SLVL" 		columnIndex="6" />
-		<result property="docEmF" 			column="DOC_EM_F" 		columnIndex="7" />
-		<result property="docPpF" 			column="DOC_PP_F" 		columnIndex="8" />
-		<result property="docAttaF" 		column="DOC_ATTA_F" 	columnIndex="9" />
-		<result property="docOpnF" 			column="DOC_OPN_F" 		columnIndex="10" />
-		<result property="docPState" 		column="DOC_P_STATE" 	columnIndex="11" />
-		<result property="docFState" 		column="DOC_F_STATE" 	columnIndex="12" />
-		<result property="formId" 			column="FORM_ID" 		columnIndex="13" />
-		<result property="docOrgId" 		column="DOC_ORG_ID" 	columnIndex="14" />
-		<result property="docType" 			column="DOC_TYPE" 		columnIndex="15" />
+		<result property="docID" 		 		column="DOC_ID" 			columnIndex="1" />
+		<result property="docVersion" 			column="DOC_VERSION" 		columnIndex="2" />
+		<result property="lbelId" 				column="LBEL_ID" 			columnIndex="3" />
+		<result property="docTitle" 			column="DOC_TITLE" 			columnIndex="4" />
+		<result property="docCd" 				column="DOC_CD" 			columnIndex="5" />
+		<result property="docSyear" 			column="DOC_SYEAR" 			columnIndex="6" />
+		<result property="docSlvl" 				column="DOC_SLVL" 			columnIndex="7" />
+		<result property="docEmF" 				column="DOC_EM_F" 			columnIndex="8" />
+		<result property="docPpF" 				column="DOC_PP_F" 			columnIndex="9" />
+		<result property="docAttaF" 			column="DOC_ATTA_F" 		columnIndex="10" />
+		<result property="docOpnF" 				column="DOC_OPN_F" 			columnIndex="11" />
+		<result property="docPState" 			column="DOC_P_STATE"	 	columnIndex="12" />
+		<result property="docFState" 			column="DOC_F_STATE" 		columnIndex="13" />
+		<result property="formId" 				column="FORM_ID" 			columnIndex="14" />
+		<result property="docOrgId" 			column="DOC_ORG_ID" 		columnIndex="15" />
+		<result property="docType" 				column="DOC_TYPE" 			columnIndex="16" />
 	</resultMap>
 	
 	<resultMap id="OngoingDoc" class="egovframework.com.uss.ion.apv.service.OngoingDocVO">
@@ -700,11 +701,11 @@
 	<insert id="DocDAO.insertDoc" parameterClass="Doc">
 		<![CDATA[
 			INSERT INTO DOC_INFO 
-				(DOC_ID, 		LBEL_ID,			DOC_TITLE,			DOC_CD,			DOC_SYEAR,
+				(DOC_ID, 		DOC_VERSION,        LBEL_ID,			DOC_TITLE,	    DOC_CD,			DOC_SYEAR,
 				 DOC_SLVL,		DOC_EM_F,			DOC_PP_F,			DOC_ATTA_F,		DOC_OPN_F,
 				 DOC_P_STATE,	DOC_F_STATE,		FORM_ID,			DOC_ORG_ID,		DOC_TYPE)
 			VALUES
-				(#docID#,		#lbelId#,			#docTitle#,			#docCd#,		#docSyear#,
+				(#docID#,		#docVersion#,       #lbelId#,			#docTitle#,		#docCd#,		#docSyear#,
 				 #docSlvl#,		#docEmF#,			#docPpF#,			#docAttaF#,		#docOpnF#,
 				 #docPState#,	#docFState#,		#formId#,			#docOrgId#,		#docType#)
 		]]>
@@ -715,6 +716,7 @@
 			UPDATE 
 				DOC_INFO 
 			SET 
+				DOC_VERSION = #docVersion#,
 				LBEL_ID = #lbelId#,
 				DOC_TITLE = #docTitle#,
 				DOC_CD = #docCd#,
@@ -737,9 +739,9 @@
 	<select id="DocDAO.selectDoc" parameterClass="Doc" resultMap="DocVO">
 		<![CDATA[
 			SELECT
-				DOC_ID, 		LBEL_ID,			DOC_TITLE,			DOC_CD,			DOC_SYEAR,
-				DOC_SLVL,		DOC_EM_F,			DOC_PP_F,			DOC_ATTA_F,		DOC_OPN_F,
-				DOC_P_STATE,	DOC_F_STATE,		FORM_ID,			DOC_ORG_ID,		DOC_TYPE
+				DOC_ID, 		DOC_VERSION,	      LBEL_ID,			DOC_TITLE,			DOC_CD,			
+				DOC_SYEAR,      DOC_SLVL,		      DOC_EM_F,			DOC_PP_F,			DOC_ATTA_F,		
+				DOC_OPN_F,      DOC_P_STATE,	      DOC_F_STATE,		FORM_ID,			DOC_ORG_ID,		DOC_TYPE
 			FROM
 				DOC_INFO
 			WHERE 

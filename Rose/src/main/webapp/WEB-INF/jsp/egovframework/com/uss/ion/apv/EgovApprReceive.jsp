@@ -28,8 +28,8 @@
 var APPROVAL_CONTEXT = "${pageContext.servletContext.contextPath}";
 var userId = "${user.uniqId}";
 var userName = "${user.emplyrNm}";
-var docId = "${doc.docID}";
-var formId = "${doc.formId}";
+var docId = "no_doc_id";
+var formId = "${formId}";
 var orgdocId = "${orgDoc.docID}";
 function toggle_content(obj, ID){
 	$('.tab_box').each(function(index){
@@ -57,6 +57,38 @@ function approvalPass(){
 	document.pageParam.action = "<c:url value='/approvalPass.do'/>";
 	document.pageParam.submit();
 }
+function settingDocumentContent(){
+ 	var contentHtml = $("#editorContent").html();
+ 	document.getElementById("hiddenContent").value = contentHtml;
+	if(contentHtml != null){
+		$('div#editorContent').replaceWith('<iframe id="iframe_content" scrolling="yes"></iframe>');
+		settingIframe(contentHtml);
+	}else{
+		settingIframe();
+	}
+}
+function autoResize(id) {
+	var iframeBodyHeight = document.getElementById(id).contentWindow.document.body.scrollHeight;
+	var iframe = document.all(id);
+	iframe.style.height = iframeBodyHeight;
+}
+function settingIframe(newContent) {
+	if(newContent != null){
+		var styleSheet = "<link rel='stylesheet' type='text/css' href='html/egovframework/com/cmm/utl/ckeditor/contents.css'>"
+		var iframeHead = $("#iframe_content").contents().find("head");
+		iframeHead.append(styleSheet);
+		
+		var iframeBody = $("#iframe_content").contents().find("body");
+		iframeBody.append(newContent);
+		autoResize("iframe_content");
+	}
+}
+function replaceAll(str, searchStr, replaceStr) {
+    return str.split(searchStr).join(replaceStr);
+}
+$(function(){
+	settingDocumentContent();
+});
 var signerKind = {'SK00' : '<spring:message code="appvl.signerKind.SK00"/>',
 	'SK01' : '<spring:message code="appvl.signerKind.SK01"/>',
 	'SK02' : '<spring:message code="appvl.signerKind.SK02"/>',
@@ -134,11 +166,11 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 									<tbody>
 										<tr>
 											<th scope="row"><label for="label_1"><spring:message code="appvl.documet.label.title"/></label></th>
-											<td colspan="2"><div class="ui_input_text"><input type="text" name="draft_title" value="<c:out value="${doc.docTitle}"/>" readonly="readonly"/></div></td>
+											<td colspan="2"><div class="ui_input_text" style="border-bottom:1px solid #e1e1e1;"><c:out value="${orgDoc.docTitle}"/></div></td>
 										</tr>
 										<tr>
 											<th scope="row"><label for="label_2"><spring:message code="appvl.documet.label.label"/></label></th>
-											<td><div class="ui_input_text"><input type="text" value="" id="selectlabelNm" readonly="readonly"/><input type="hidden" value="<c:out value="${doc.lbelId}"/>" id="selectlabelId"/></div></td>
+											<td><div class="ui_input_text"><input type="text" value="" id="selectlabelNm" readonly="readonly"/><input type="hidden" value="" id="selectlabelId"/></div></td>
 											<td>
 												<div class="ui_btn_rapper">
 													<a href="#" class="btn_color3 selectLabel" onclick="javascript:openLabelPopup()"><spring:message code="common.button.select"/></a>
@@ -148,8 +180,10 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 										<tr>
 											<th scope="row"><spring:message code="appvl.documet.label.security"/></th>
 											<td colspan="2">
-												<span class="radio_rapper"><input type="radio" value="99" name="doc_slvl" <c:if test="${doc.docSlvl eq '99'}">checked</c:if> /><label  for="label_3-1"><spring:message code="appvl.documet.label.security.open"/></label></span>
-												<span class="radio_rapper"><input type="radio" value="1" name="doc_slvl" <c:if test="${doc.docSlvl eq '1'}">checked</c:if> /><label  for="label_3-2"><spring:message code="appvl.documet.label.security.secret"/></label></span>
+												 <div class="ui_input_text" style="border-bottom:1px solid #e1e1e1;">
+													<c:if test="${orgDoc.docSlvl eq '99'}"><label  for="label_3-1"><spring:message code="appvl.documet.label.security.open"/></label></c:if>
+													<c:if test="${orgDoc.docSlvl eq '1'}"><label  for="label_3-2"><spring:message code="appvl.documet.label.security.secret"/></label></c:if>
+												</div>
 											</td>
 										</tr>
 										<tr>
@@ -319,6 +353,7 @@ var appvl_invalid_signerList_noapprover= "<spring:message code="appvl.invalid.si
 	<form action="" id="pageParam" name="pageParam" method="post">
 		<input type="hidden" id="docId" name="docId" value="">
 		<input type="hidden" id="orgdocId" name="orgdocId" value="">
+		<input type="hidden" id="hiddenContent" name="hiddenContent" value="">
 	</form>
 </div>
 <!-- wrap End -->
