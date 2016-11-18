@@ -254,41 +254,54 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         }
         return false;
     }
+    
+	private boolean isFinishedState(SignerVO signer) {
+		if (signer.getSignState().equalsIgnoreCase(ApprovalConstants.SIGNER_STATE_FINISHED)) {
+			return true;
+		}
+		return false;
+	}
+	
     private SignerVO getCurrentSigner(UserManageVO signer, List<SignerVO> signerList){
         for(int i=0; i<signerList.size(); i++){
             SignerVO tmp = signerList.get(i);
-//            logger.debug("signerList["+i+"]=>["+tmp+"]");
-//            if(isOngoingState(tmp) && tmp.getUserID().equals(signer.getUniqId())){
+
             if(tmp.getUserID().equals(signer.getUniqId())){
                 return tmp;
             }
         }
-//        logger.debug("can not find the current signer.");
         return null;
     }
     private SignerVO getNextSigner(List<SignerVO> signerList)throws Exception{
-        // TODO for parallel agreement
-        List<SignerVO> nextSignerList = new ArrayList();
+        SignerVO nextSigner = null;
+        
         for(int i=0; i<signerList.size(); i++){
             SignerVO tmp = signerList.get(i);
-            LOGGER.debug("signerList[{}]=>[{}]", i, tmp);
-            if(isWaitingState(tmp)){
-                nextSignerList.add(tmp);
+            
+            if(isFinishedState(tmp) == false){
+                nextSigner = tmp;
+                break;
             }
         }
-        if(nextSignerList.size() <= 0){
-            return null;
-        }
-//      if(nextSignerList.size() > 1){
-//          throw new ApprovalException("the waiting signer is more than one.");
-//      }
-        return nextSignerList.get(0);
+        
+        return nextSigner;
     }
     
     private void doneSigner(SignerVO signer){
         signer.setSignDate(createCurrentDate());
         signer.setSignState(ApprovalConstants.SIGNER_STATE_FINISHED);
     }
+    
+    private void doneSigner(SignerVO signer, boolean isReversedSignLine){
+        signer.setSignDate(createCurrentDate());
+        
+    	if (isReversedSignLine) {
+            signer.setSignState(ApprovalConstants.SIGNER_STATE_WAIT);
+    	} else {
+	        signer.setSignState(ApprovalConstants.SIGNER_STATE_FINISHED);
+    	}
+    }
+    
     private void rejectSigner(SignerVO signer, List<SignerVO> signerList, String opinion){
         signer.setSignDate(createCurrentDate());
         signer.setSignState(ApprovalConstants.SIGNER_STATE_RETURN);
@@ -490,7 +503,7 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         int ongoingIndex = -1;
         for(int i=0; i<signerList.size(); i++){
             SignerVO signer = (SignerVO)signerList.get(i);
-//            logger.debug("arrangeSignerList signerList before ["+i+"]["+signer+"]");
+
             if(!ApprovalConstants.SIGNER_STATE_FINISHED.equals(signer.getSignState())){
                 if(ongoingIndex < 0){
                     ongoingIndex = i;
@@ -501,7 +514,6 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
                     signer.setSignState(ApprovalConstants.SIGNER_STATE_WAIT);
                 }
             }
-//            logger.debug("arrangeSignerList signerList after ["+i+"]["+signer+"]");
         }
         
         return signerList;
@@ -590,8 +602,11 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         if(draftSigner == null){
             throw new Exception("can not find the drafter info["+signerList+"]");
         }
+        
+        boolean isReversedSignerLine = checkReversedSignerLine(signerList, currentSigner);
+        
         // done the singer
-        doneSigner(currentSigner);
+        doneSigner(currentSigner, isReversedSignerLine);
         SignerVO nextSigner = getNextSigner(signerList);
        
         if(nextSigner != null){
@@ -599,7 +614,9 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
             ongoingDoc(doc, draftSigner, currentSigner, signerList, recipientList, attachList, preAttachedFileListJson);
             LOGGER.debug("approveForApprove after ongoingDoc[{}]", doc);
             
-            nextSigner.setSignState(ApprovalConstants.SIGNER_STATE_ONGOING);
+            if (isReversedSignerLine == false) {
+            	nextSigner.setSignState(ApprovalConstants.SIGNER_STATE_ONGOING);
+            }
             LOGGER.debug("approveForApprove after nextSigner[{}]", nextSigner);
             
             docFile = ongoingDocFile(docFile, doc, draftSigner, signerList, parameterMap);
@@ -621,8 +638,23 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         signerHistoryService.approval(currentSigner);
         return docFile;
     }   
-    
-    public File approveForReject(UserManageVO signer, Doc doc, String opinion) throws Exception{
+
+	private boolean checkReversedSignerLine(List<SignerVO> signerList, SignerVO currentSigner) {
+		boolean isReversed = false;
+		
+		int idxOfCurrentSigner = signerList.indexOf(currentSigner);
+		if (idxOfCurrentSigner <= 0) {
+			return isReversed;
+		}
+		
+		SignerVO prevSigner = signerList.get(idxOfCurrentSigner-1);
+		if (isFinishedState(prevSigner) == false) {
+			isReversed = true;
+		}
+		return isReversed;
+	}
+
+	public File approveForReject(UserManageVO signer, Doc doc, String opinion) throws Exception{
         SignerVO vo = new SignerVO();
         vo.setDocID(doc.getDocID());
         
@@ -943,7 +975,9 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
         vo.setDocID(doc.getDocID());
         
         List<SignerVO> signerListFromDB = signerDAO.selectApprovalSigners(vo);
-        List<SignerVO> oriSignerListFromDB = signerListFromDB;
+        List<SignerVO> oriSignerListFromDB = new ArrayList<SignerVO>();
+        oriSignerListFromDB.addAll(signerListFromDB);
+        
         List<SignerVO> insertSignerList = new ArrayList<SignerVO>();
         List<SignerVO> updateSignerList = new ArrayList<SignerVO>();
         List<SignerVO> deleteSignerList = new ArrayList<SignerVO>();
@@ -953,7 +987,8 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
             SignerVO srcSigner = null;
             for(int j=0; signerListFromDB != null && j<signerListFromDB.size(); j++){
                 SignerVO tmp = (SignerVO)signerListFromDB.get(j);
-                if(tmp.getSignerID().equals(signer.getSignerID())){
+                
+                if(tmp.getUserID().equals(signer.getUserID())){
                     signerListFromDB.remove(j);
                     srcSigner = tmp;
                     break;
@@ -965,10 +1000,10 @@ public class EgovSignerServiceImpl extends EgovAbstractServiceImpl implements Eg
                 insertSignerList.add(signer);
             }
         }
-        
-        if (isInsertedWaitingSigner(currentSigner, signerList)) {
-        	initSignState(currentSigner, updateSignerList);
-        }
+//        
+//        if (isInsertedWaitingSigner(currentSigner, signerList)) {
+//        	initSignState(currentSigner, updateSignerList);
+//        }
 
         processSignerChangeInfo(doc, currentSigner, oriSignerListFromDB, signerList);
         

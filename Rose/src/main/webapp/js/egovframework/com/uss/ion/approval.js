@@ -71,13 +71,14 @@ function getSignerList(signerListId){
 		var signerPositionName = $(this).find(".signer_positionname").text();
 		var signerDutyName = $(this).find(".signer_dutyname").text();
 		var signerOpinion = $(this).find(".signer_opinion").text();
+		var signerDocVersion = $(this).find(".signer_docVersion").text();
 
 		signerList.push({"seq" : seq, "signerId": signerId, "signerKind": signerKind, 
 			"signerSignState": signerSignState, "signerSignDate" : signerSignDate,
 			"signerUserId" : signerUserId, "signerSignerName": signerSignerName, 
 			"signerDeptId": signerDeptId, "signerDeptName": signerDeptName, 
 			"signerPositionName": signerPositionName, "signerDutyName" : signerDutyName, 
-			"signerOpinion" : signerOpinion});
+			"signerOpinion" : signerOpinion, "signerDocVersion" : signerDocVersion});
 	});
 	return signerList;
 }
@@ -86,7 +87,7 @@ function changeSignerLine(){
 	var signerList = getSignerList(signerListTableId);
 	var signerList4Json = JSON.stringify(signerList);
 	$("#div_popup").load(APPROVAL_CONTEXT+'/signerline.do', 
-			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "false"},
+			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "false", docId: docId},
 			function(){
 				if (typeof(user_selection_load) != "undefined") {
 					user_selection_load();

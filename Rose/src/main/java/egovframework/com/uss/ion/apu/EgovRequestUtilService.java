@@ -18,23 +18,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-
-import com.ibm.icu.util.Calendar;
-
 import egovframework.com.cmm.service.EgovFileMngService;
 import egovframework.com.cmm.service.EgovFileMngUtil;
 import egovframework.com.cmm.service.EgovProperties;
@@ -278,7 +272,14 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 			String signerSignState = jsonObject.getString("signerSignState");
 			String signerSginDate = jsonObject.getString("signerSignDate");
 			String signerOpinion = jsonObject.getString("signerOpinion");
+			String signerDocVersion = jsonObject.optString("signerDocVersion", "0").trim();
 			logger.debug("getSignerList jsonArray["+i+"], signerId["+signerId+"], signerKind["+signerKind+"], signerUserId["+signerUserId+"], signerSignState["+signerSignState+"]");
+			
+			if(signerDocVersion.length() <= 0){
+				signerDocVersion = "0";
+			}else{
+				signerDocVersion = signerDocVersion.substring(0, signerDocVersion.indexOf("."));
+			}
 
 			SignerVO signer = null;
 			if(signerId == null || signerId.length() < 1) {
@@ -311,13 +312,9 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 				}
 			}
 			
-			if(userId != null && docVersion > 0){
-				if(userId.equals(signerUserId)){
-					signer.setDocVersion(docVersion);
-				}
-			}
 			signer.setSignSeq(seq);
 			signer.setDocID(docId);
+			signer.setDocVersion(Integer.parseInt(signerDocVersion));
 			signer.setSignKind(signerKind);
 			signer.setUserID(signerUserId);
 			signer.setSignerName(signerSignerName);
@@ -329,6 +326,11 @@ public class EgovRequestUtilService  extends EgovAbstractServiceImpl {
 			if (isRedraft == false) {
 				signer.setSignDate(DateHelper.convertDate(signerSginDate, "yyyy-MM-dd HH:mm"));
 				signer.setOpinion(signerOpinion);
+			}
+			if(userId != null && docVersion > 0){
+				if(userId.equals(signerUserId)){
+					signer.setDocVersion(docVersion);
+				}
 			}
 			
 			logger.debug("getSignerList jsonArray["+i+"], signer["+signer+"] added in signerList");

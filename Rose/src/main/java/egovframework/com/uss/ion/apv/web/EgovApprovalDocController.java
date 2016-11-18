@@ -405,8 +405,9 @@ public class EgovApprovalDocController {
         if(isAuthentication(request, response, loginVO)) {
             UserManageVO user = userService.getUser(loginVO.getUniqId());
 			String redraft = request.getParameter("redraft");
+			String docId = makeValidDocId(request.getParameter("docId"));
 			
-			List<SignerVO> signerList = requestUtilService.getSignerList(request, null, null, 0);
+			List<SignerVO> signerList = requestUtilService.getSignerList(request, docId, null, 0);
 			Collections.sort(signerList, new Comparator<SignerVO>() {
 				public int compare(SignerVO o1, SignerVO o2) {
 					return o2.getSignSeq() - o1.getSignSeq();
@@ -422,6 +423,17 @@ public class EgovApprovalDocController {
 		return model;
 	}
 	
+	private String makeValidDocId(String docId) {
+		final String CONST_NO_DOC_ID = "no_doc_id";
+		
+		if ((docId == null) 
+				|| (docId.equalsIgnoreCase(CONST_NO_DOC_ID))) {
+			return null;
+		}
+		
+		return docId;
+	}
+
 	@RequestMapping("/selectUser.do")
 	public ModelAndView selectUser(HttpServletRequest request, HttpServletResponse response)throws Exception{
 		ModelAndView model = new ModelAndView();

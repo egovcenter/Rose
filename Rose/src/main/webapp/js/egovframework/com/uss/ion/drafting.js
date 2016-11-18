@@ -411,13 +411,14 @@ function getSignerList(signerListId){
 		var signerPositionName = $(this).find(".signer_positionname").text();
 		var signerDutyName = $(this).find(".signer_dutyname").text();
 		var signerOpinion = $(this).find(".signer_opinion").text();
+		var signerDocVersion = $(this).find(".signer_docVersion").text();
 
 		signerList.push({"seq" : seq, "signerId": signerId, "signerKind": signerKind, 
 			"signerSignState": signerSignState, "signerSignDate" : signerSignDate,
 			"signerUserId" : signerUserId, "signerSignerName": signerSignerName, 
 			"signerDeptId": signerDeptId, "signerDeptName": signerDeptName, 
 			"signerPositionName": signerPositionName, "signerDutyName" : signerDutyName, 
-			"signerOpinion" : signerOpinion});
+			"signerOpinion" : signerOpinion, "signerDocVersion" : signerDocVersion});
 	});
 	return signerList;
 }
@@ -490,7 +491,11 @@ function applySignerList(signerList, redraft){
 		newSignerTr.find(".signer_dutyname").text(signer.signerDutyName);
 		newSignerTr.find(".signer_opinion").text(signer.signerOpinion);
 		newSignerTr.find(".signer_state_").text(convertSignState(signer.signerSignState));
-
+		
+		if(signer.signerSignState == "SS00" || signer.signerSignState == "SS03"){
+			newSignerTr.find(".signer_docVersion").text("");
+		}
+		
 		/* 160307_SUJI.H */
 		var year = signer.signerSignDate.substring(24, 28);
 		var month = signer.signerSignDate.substring(4, 7);
@@ -677,7 +682,7 @@ function assignSignerLine(){
 	var signerList4Json = JSON.stringify(signerList);
 	
 	$("#div_popup").load(APPROVAL_CONTEXT+'/signerline.do', 
-			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "false"},
+			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "false", docId: docId},
 			function(){
 				if (typeof(user_selection_load) != "undefined") {
 					user_selection_load();
@@ -692,7 +697,7 @@ function assignSignerLine4Redraft(){
 	var signerList4Json = JSON.stringify(signerList);
 	
 	$("#div_popup").load(APPROVAL_CONTEXT+'/signerline.do', 
-			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "true"},
+			{userId: userId, formId: formId, signerList: signerList4Json, redraft: "true", docId: docId},
 			function(){
 				if (typeof(user_selection_load) != "undefined") {
 					user_selection_load();
